@@ -1,0 +1,102 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{mathtools}
+\usepackage{graphicx}
+\graphicspath{ {./images/} }
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+\title{CS412 HW2}
+\author{Liam Adams }
+\date{October 9 2018}
+
+\begin{document}
+
+\maketitle
+
+\section{Question 1}
+a) If there are no hierarchies associated with each dimension n, $$\text{there are }2^n \text{cuboids in a data cube. }2^{10}=1024\text{ cuboids}$$\\\\
+b) There are 3 closed cells - the 2 base cells and $$(a_1,*,a_3,*,*,*,*,*,a_9,*):2$$\\\\
+c)$$2\times2^{10} - \text{(2 base cells)} - 2^3\text{ duplicates} = 2038 \text{ aggregate cells}$$\\\\
+d) 3 closed cells - 2 base cells = 1 aggregate closed cell\\\\
+e) They are all generalizations of the 1 aggregate closed cell - $$(a_1,*,a_3,*,*,*,*,*,a_9,*):2$$  $$\text{There are 3 specialized dimensions so there are }2^3 = 8\text{ aggregate cells with minimum support of 2}$$\\
+\section{Question 2}
+a) $$\sigma^2=(\frac{1}{N}\sum\limits_{i=1}^{N}{x_i^2}) - \bar{x}^2$$ $$\sigma=\sqrt{\sigma^2}$$  Standard deviation is an algebraic measure because variance is an algebraic measure.  Variance can be calculated like in the equation above, which requires the count, the sum of the squares of each element, and the mean of the data set. Count and sum of each squared element are distributive measures because they can be obtained by partitioning, applying the count or sum of squares to each partition, and aggregating the results of each partition to get the value for the entire data set.  Mean is an algebraic measure composed of 2 distributive measures - the count and the sum.  To get the standard deviation you take the square root of the numerical value of the variance, which can be done in constant time and does not depend on the elements of the data set.  Therefore standard deviation is an algebraic measure because it is composed of a finite number of arguments obtained through distributive aggregate functions.\\\\
+b) The average of the min and the max is algebraic measure because it is composed of 2 distributive aggregate functions, the min and max.  The min and max are distributive measures because they can be calculated by partitioning the data set, applying the min and max functions to each partition, and using the results of each partition to get the min and max values for the entire data set.\\\\
+c) The sum of the largest 50 values is an algebraic function.  The largest 50 values can be obtained by dividing the data set into partitions and repeatedly applying the max function, a distributive aggregate function, until the partitions don't produce a value larger than the 50th largest value.  Then the sum can be applied to the 50 values which is itself a distributive measure.\\\\
+d) $$\text{Sum of the largest }\floor*{\frac{n}{1000}}\text{ values in the current cuboid is an algebraic measure}$$ It is obtained by first finding n, the count, which from part a is a distributive aggregate function.  Then doing some arithmetic dividing by 1000 and truncating the remainder to obtain x, which can be done in constant time and does not depend on the elements of the data set.  Finally you find the largest x values of the data set, which is an algebraic function explained in part c.\\\\
+e) The mode is a holistic function, not an algebraic function.  It is holistic because partitioning the data set into n partitions, finding the mode of each partition, then finding the mode of those n values does not equal the mode of the entire data set.
+\section{Question 3}
+Below are the counts for 1 item sets and the frequent 1 item sets
+\begin{center}
+\begin{tabular}{ |c|c| }
+ \hline
+ A & 3 \\
+ B & 4 \\
+ C & 4 \\
+ D & 4 \\
+ E & 1 \\
+ F & 1 \\
+ G & 1 \\
+ H & 2 \\
+ \hline
+\end{tabular}
+\quad
+\begin{tabular}{ |c|c| }
+ \hline
+ A & 3 \\
+ B & 4 \\
+ C & 4 \\
+ D & 4 \\
+ \hline
+\end{tabular}
+\end{center}
+Now join the frequent 1 item sets to get candidate 2 item sets and reduce to frequent 2 item sets
+\begin{center}
+\begin{tabular}{ |c|c| }
+ \hline
+ A,B & 2 \\
+ A,C & 2 \\
+ A,D & 3 \\
+ B,C & 4 \\
+ B,D & 3 \\
+ C,D & 3 \\
+ \hline
+\end{tabular}
+\quad
+\begin{tabular}{ |c|c| }
+ \hline
+ A,D & 3 \\
+ B,C & 4 \\
+ B,D & 3 \\
+ C,D & 3 \\
+ \hline
+\end{tabular}
+\end{center}
+Now join the frequent 2 item sets to get the candidate 3 item sets. By the Apriori algorithm that produces (B,C,D) with a count of 3, which is the frequent itemset with the largest k.\\\\
+b) A is frequent but (A,B) is not\\\\
+c) D is a closed pattern because its proper supersets (A,D), (B,D), and (C,D) have different support counts and D is frequent.\\\\
+(A,D) and (B,C) are closed patterns because there exists no proper supersets of these patterns with the same support count and they are frequent.\\\\
+(B,C,D) is a closed pattern because because it is frequent and it has no proper supersets.\\\\
+d) (A,D) and (B,C,D) because they are frequent and there is no superset that is also frequent.\\\\
+e) $$buys(B) \wedge buys(C) => buys(D)\text{ support=3/5=.6, confidence=3/4=.75}$$
+$$buys(B) \wedge buys(D) => buys(C)\text{ support=3/5=.6, confidence=3/3=1}$$
+$$buys(C) \wedge buys(D) => buys(B)\text{ support=3/5=.6, confidence=3/3=1}$$\\\\
+f)
+
+\includegraphics{3f}\\\\
+
+g)
+\begin{tabular}{ |c|c|c|c| }
+ \hline
+ Item & Conditional Base & FP & FP Generated \\
+ A & {B,C,D:2}, {D:1} & {D:3} & {D,A:3} \\
+ \hline
+\end{tabular}\\\\
+\includegraphics{3g}\\\\
+\section{Question 4}
+a) Using the tables from part 3a, the frequent patterns that also have a sum price greater than 45 are (B,D), (C,D), (B,C), and (B,C,D)\\\\
+b) $$\text{An efficient method for mining frequent patterns satisfying sum(s.price)}\leq45$$ $$\text{could use the Apriori algorithm and prune based on the minimum support and sum of the price at each level.}$$  $$\text{Because the constraint is antimonotonic, if an itemset does not satisfy the constaint,}$$ $$\text{neither can any superset of that itemset.}$$\\\\
+c) Yes they are both convertible.  $$\text{avg(S.price)}\geq30$$ can be converted to antimonotonic if an itemset violates the constraint and the items are added in price descending order.  Further addition of cheaper items will never make it satisfy the constraint.\\
+$$\text{avg(S.price)}\leq30$$ can be made antimonotonic if an itemset violates the constraint and the items are added in price ascending order.  Further addition of more expensive items will never make it satisfy the constraint.
+
+\end{document}

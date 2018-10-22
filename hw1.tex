@@ -1,0 +1,66 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\title{CS412 HW1}
+\author{Liam Adams }
+\date{September 20 2018}
+
+\begin{document}
+
+\maketitle
+
+\section{Question 1}
+Midterm vector $$\vec{m} = \begin{bmatrix} 75 & 78 & 84 & 86 & 88 & 90 & 95 & 96 & 96 & 99 \end{bmatrix}^T$$\\
+Final vector $$\vec{f} = \begin{bmatrix} 77 & 80 & 80 & 85 & 88 & 88 & 90 & 95 & 99 & 100 \end{bmatrix}^T$$\\\\
+a) Max Midterm = 99, Min Midterm = 75, Max Final = 100, Min Final = 77\\\\
+b) The mean of the midterm grades is $$\mu_{mid}=\frac{1}{N}\sum\limits_{i=1}^{N} m_i=\frac{75+78+...+99}{10}=88.7$$\\
+   The mode of the midterm grades is 96\\
+   The median of the midterm grades is $\frac{88+90}{2}=89$\\\\
+   The mean of the final grades is $$\mu_{final}=\frac{1}{N}\sum\limits_{i=1}^{N}f_i=\frac{77+80+...+100}{10}=88.2$$\\
+   The mode of the final grades is 80 and 88\\
+   The median of the final grades is $\frac{88+88}{2}=88$\\\\
+c) The first quartile is the number for which at most $\frac{1}{4}$ of the data values are less than that number.  $\frac{10}{4}=2.5$ so the first quartile for a sample size of 10 would be at the 3rd member of the sample which is 84 for the midterm and 80 for the final\\
+The third quartile is the number for which at most $\frac{3}{4}$ of the data values are less than that number.  $\frac{10x3}{4}=7.5$ so the third quartile for a sample size of 10 would be at the 8th member of the sample which is 96 for the midterm and 95 for the final\\
+The inter-quartile range is the third quartile - the first quartile which is 96-84=12 for the midterm and 95-80=15 for the final\\\\
+d) The sample variance is defined as $$s=\frac{1}{n-1}\sum\limits_{i=1}^{n}{(x_i-\bar{x})^2}$$. For $$\vec{m}$$ with n=10 and $$\bar{x}=88.7$$ we have $$s^2_{mid}=\frac{(75-88.7)^2 + (78-88.7)^2 + ... + (99-88.7)^2}{10-1}=65.122$$\\
+For $$\vec{f}$$ with n=10 and $$\bar{x}=88.2$$ we have $$s^2_{final}=\frac{(77-88.2)^2 + (80-88.2)^2 + ... + (100-88.2)^2}{10-1}=63.956$$\\\\
+The population variance is defined as $$\sigma^2=\frac{1}{N}\sum\limits_{i=1}^{N}{(x_i-\mu)^2}$$.  For $$\vec{m}$$ with N=10 and $$\mu=88.7$$ we have $$\sigma^2_{mid}=\frac{(75-88.7)^2 + (78-88.7)^2 + ... + (99-88.7)^2}{10}=58.610$$\\
+For $$\vec{f}$$ with N=10 and $$\mu=88.2$$ we have $$\sigma^2_{final}=\frac{(77-88.2)^2 + (80-88.2)^2 + ... + (100-88.2)^2}{10}=57.560$$\\\\
+e) The sample standard deviation s is defined as $$\sqrt{s^2}$$, so $$s_{mid}=\sqrt{65.122}=8.070$$ and $$s_{final}=\sqrt{63.956}=7.997$$\\
+The population standard deviation is defined as $$\sqrt{\sigma^2}$$, $$\sigma_{mid}=\sqrt{58.610}=7.656$$ and $$\sigma_{final}=\sqrt{57.560}=7.587$$\\
+\section{Question 2}
+a) The min-max normalization is defined as $$x'_i=\frac{x_i-min_X}{max_X-min_X}$$\\
+The min-max normalization for the midterm scores of students 1,2, and 3 is:\\
+$$Student 1: x'_1=\frac{75-75}{99-75}=0$$\\
+$$Student 2: x'_2=\frac{78-75}{99-75}=.125$$\\
+$$Student 3: x'_3=\frac{84-75}{99-75}=.375$$\\
+b) The population variance is defined as $$\sigma^2=\frac{1}{N}\sum\limits_{i=1}^{N}{(x_i-\mu)^2}$$. Plugging in the min-max normalized midterm scores gives $$\sigma^2_{mid}=\frac{(0-.571)^2 + (.125-.571)^2 + ... + (1-.571)^2}{10}=.102$$\\
+c) The z-score normalization is defined as $$z_i=\frac{x_i-\mu}{\sigma}$$\\
+The z-score normalization for the final scores of students 4,5, and 6 is:\\
+$$Student 4: z_4=\frac{85-88.2}{7.587}=-.422$$\\
+$$Student 5: z_5=\frac{88-88.2}{7.587}=-.026$$\\
+$$Student 6: z_6=\frac{88-88.2}{7.587}=-.026$$\\
+d) Using the same formula from part b we have $$\sigma^2_{final}=\frac{(-1.476-0)^2 + (-1.081-0)^2 + ... + (1.555-0)^2}{10}=1$$\\
+\section{Question 3}
+Midterm vector $$\vec{m} = \begin{bmatrix} 95 & 86 & 78 & 99 & 84 & 90 & 88 & 75 & 96 & 96 \end{bmatrix}^T$$\\
+Final vector $$\vec{f} = \begin{bmatrix} 88 & 88 & 90 & 95 & 85 & 77 & 99 & 80 & 100 & 80 \end{bmatrix}^T$$\\\\
+a) The population covariance is defined as $$E[\vec{m}\vec{f}]-E[\vec{m}]E[\vec{f}]$$ which is $$\frac{95\times88+86\times88+...+96\times80}{10}-88.7\times88.2=18.16$$\\
+b) Pearson's correlation coefficient is defined as $$\frac{\sigma_{12}}{\sigma_1\sigma_2}$$ which is $$\frac{18.16}{7.656\times7.587}=.313$$
+c) No because both the covariance and the correlation coefficient do not equal 0\\
+d) Manhattan distance is defined as $$d(i,j)=|m_1-f_1|+|m_2-f_2|+...+|m_n-f_n|$$ which is $$|95-88|+|86-88|+...+|96-80|=75$$\\
+Euclidean distance is defined as $$d(i,j)=\sqrt{|m_1-f_1|^2+|m_2-f_2|^2+...+|m_n-f_n|^2}$$ which is $$\sqrt{|95-88|^2+|86-88|^2+...+|96-80|^2}=28.302$$\\
+Supremum distance is the maximum distance between any attribute of the vectors which is $$96-80=16$$\\
+The cosine similarity is $$\frac{\vec{m}\cdot\vec{f}}{||\vec{m}||||\vec{f}||}$$ which is $$\frac{95\times88+86\times88+...+96\times80}{\sqrt{95^2+86^2+...+96^2}\times\sqrt{88^2+88^2+...80^2}}=.995$$
+e) The Euclidean distance is the distance between the tips of the $$\vec{m}$$ and $$\vec{f}$$ vectors in 10 dimensional space.\\\\
+f) No, because KL Divergence is used to measure the difference between 2 probability distributions over the same variable X.  But here we have to variables, M for the midterm scores and F for the final scores.  The Jaccard coefficient would also not be a good distance measure because it is used for assymetric binary variables and our variables are numeric.
+\section{Question 4}
+a) $$\chi^2=\sum\limits_{i=1}^{n}{\frac{(O_i-E_i)^2}{E_i}}$$ which is $$\frac{(200-\frac{280\times220}{3300})^2}{\frac{280\times220}{3300}}+\frac{(80-\frac{280\times3080}{3300})^2}{\frac{280\times3080}{3300}}+\frac{(20-\frac{3020\times220}{3300})^2}{\frac{3020\times220}{3300}}+\frac{(3000-\frac{3020\times3080}{3300})^2}{\frac{3020\times3080}{3300}}=2062.333$$\\
+b) Yes, the degree of freedom is 1 and 2062.333 is greater than every value in the row for DF=1, so we can say purchasing beer and purchasing diapers are correlated with .001 confidence.\\\\
+c) $$p_0=\frac{200}{3300}=.061$$
+$$p_1=\frac{80+20}{3300}=.030$$
+$$p_2=\frac{3000}{3300}=.909$$
+$$\vec{p} = \begin{bmatrix} .061 & .030 & .909 \end{bmatrix}^T$$\\
+d) $$D_{KL}(p(x)||q(x))=\sum\nolimits_{x \in X}{p(x)\ln{\frac{p(x)}{q(x)}}}$$ when q(x) is used to approximate p(x).  Using p(x) to approximate q(x) is the following
+$$D_{KL}(q(x)||p(x))=\sum\nolimits_{x \in X}{q(x)\ln{\frac{q(x)}{p(x)}}}$$
+$$.5\times\ln{\frac{.5}{.061}}+.3\times\ln{\frac{.3}{.030}}+.2\times\ln{\frac{.2}{.909}}=1.440$$
+\end{document}

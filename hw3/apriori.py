@@ -12,30 +12,36 @@ def apriori(min_sup, transactions):
 
     # begins with frequent 1-itemsets
     freq_itemsets = {k: v for k,v in counter.items() if v >= min_sup}
+    g_freq_itemsets = freq_itemsets
     loop_range = range(2, len(freq_itemsets))
     for k in loop_range:
         itemsets = list(freq_itemsets.keys())
-        k_minus_one_itemsets = [item for item in itemsets if len(item) == k-1]
-        k_minus_one_itemsets = sorted(k_minus_one_itemsets)
-        candidate_k_itemsets = apriori_gen(k_minus_one_itemsets)
+        #convert to tuple
+        #itemsets = [(x,) for x in itemsets]
+        sorted_itemsets = sorted(itemsets)
+        candidate_k_itemsets = apriori_gen(sorted_itemsets)
+        counter = {}
         for t in transactions:
-            sorted_t = sorted([*t.replace(" ", "")])
+            sorted_t = filter(str.strip, sorted([*t]))
             # need to order each subset alphabetically
             k_subsets_of_t = set(itertools.combinations(sorted_t, k))
-            candidates_in_t = list(set(candidate_k_itemsets) & k_subsets_of_t)
+            candidates_in_t = list(set(candidate_k_itemsets) & k_subsets_of_t)            
             for c in candidates_in_t:
                 if c not in counter:
                     counter[c] = 1
                 else:
                     counter[c] = counter[c] + 1
         freq_itemsets = {k: v for k,v in counter.items() if v >= min_sup}
-    return freq_itemsets
+        g_freq_itemsets.update(freq_itemsets)
+    return g_freq_itemsets
 
 def apriori_gen(itemset):
     candidate_itemsets = []
-    k = len(itemset[0])
-    if k == 1:
+    if isinstance(itemset[0], str):
+        k = 1
         return list(itertools.combinations(itemset, 2))
+    else:
+        k = len(itemset[0])        
     loop_range = range(0, len(itemset) - 1)
     for i in loop_range:
         item = itemset[i]
@@ -68,7 +74,7 @@ def has_infrequent_subset(candidate_itemset, itemsets):
     return False
 
 
-f = open('input2.txt', 'r')
+f = open('input1.txt', 'r')
 lines = f.read().splitlines()
 f.close()
 

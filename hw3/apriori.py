@@ -13,12 +13,16 @@ def apriori(min_sup, transactions):
     # begins with frequent 1-itemsets
     freq_itemsets = {k: v for k,v in counter.items() if v >= min_sup}
     loop_range = range(2, len(freq_itemsets))
-    itemsets = sorted([*freq_itemsets])
     for k in loop_range:
-        candidate_k_itemsets = apriori_gen(itemsets)
+        itemsets = list(freq_itemsets.keys())
+        k_minus_one_itemsets = [item for item in itemsets if len(item) == k-1]
+        k_minus_one_itemsets = sorted(k_minus_one_itemsets)
+        candidate_k_itemsets = apriori_gen(k_minus_one_itemsets)
         for t in transactions:
-            k_subsets_of_t = itertools.combinations(t, k)
-            candidates_in_t = list(set(candidate_k_itemsets) & set(k_subsets_of_t))
+            sorted_t = sorted([*t.replace(" ", "")])
+            # need to order each subset alphabetically
+            k_subsets_of_t = set(itertools.combinations(sorted_t, k))
+            candidates_in_t = list(set(candidate_k_itemsets) & k_subsets_of_t)
             for c in candidates_in_t:
                 if c not in counter:
                     counter[c] = 1
@@ -39,7 +43,7 @@ def apriori_gen(itemset):
         for join_item in join_slice:
             # join k-itemsets
             # need to check if first k-2 elements of itemsets are equal
-            elem_range = range(k-2)
+            elem_range = range(k-1)
             joinable = None
             # compare elements of ith and (i+1)th itemset
             for elem_index in elem_range:
@@ -48,15 +52,15 @@ def apriori_gen(itemset):
                 else:
                     joinable = None
             if joinable:
-                candidate_itemset = item + join_item[k-1]
+                candidate_itemset = list(item)
+                candidate_itemset.append(join_item[k-1])
                 if has_infrequent_subset(candidate_itemset, itemset):
                     continue
                 else:
-                    candidate_itemsets.append(candidate_itemset)
+                    candidate_itemsets.append(tuple(candidate_itemset))
     return candidate_itemsets
-    #join(itemsets[1:], candidate_itemsets)
 
-def has_infrequent_subset(itemsets, candidate_itemset):
+def has_infrequent_subset(candidate_itemset, itemsets):
     k_minus = len(itemsets[0])
     for subset in itertools.combinations(candidate_itemset, k_minus):
         if subset not in itemsets:
@@ -64,7 +68,7 @@ def has_infrequent_subset(itemsets, candidate_itemset):
     return False
 
 
-f = open('input1.txt', 'r')
+f = open('input2.txt', 'r')
 lines = f.read().splitlines()
 f.close()
 

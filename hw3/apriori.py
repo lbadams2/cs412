@@ -24,7 +24,7 @@ def apriori(min_sup, transactions):
             sorted_t = sorted([*t])
             # need to order each subset alphabetically
             k_subsets_of_t = set(itertools.combinations(sorted_t, k))
-            candidates_in_t = list(set(candidate_k_itemsets) & k_subsets_of_t)            
+            candidates_in_t = list(set(candidate_k_itemsets) & k_subsets_of_t)
             for c in candidates_in_t:
                 if c not in counter:
                     counter[c] = 1
@@ -72,8 +72,33 @@ def has_infrequent_subset(candidate_itemset, itemsets):
             return True
     return False
 
+def print_freq_patterns(freq_patterns):
+    sorted_patterns = sorted(freq_patterns.items(), key=lambda kv: kv[1])
+    print(sorted_patterns)
 
-f = open('input1.txt', 'r')
+# a pattern is closed if it is frequent and there is no super pattern with the same support
+def print_closed_patterns(freq_patterns):
+    k = 1
+    k_patterns = [t for t in freq_patterns.keys() if isinstance(t, str)]
+    closed_patterns = list(k_patterns)
+    while k_patterns:        
+        k = k + 1
+        next_patterns = [t for t in freq_patterns.keys() if len(t) == k]
+        #while next_patterns:            
+        for pattern in k_patterns:
+            for next_pattern in next_patterns:
+                set_pattern = set(pattern)
+                set_next_pattern = set(next_pattern)
+                if set_pattern.issubset(set_next_pattern) and freq_patterns[pattern] == freq_patterns[next_pattern]:                    
+                    closed_patterns.remove(pattern)
+                    break
+            #next_k = k + 1
+            #next_patterns = [t for t in freq_patterns.keys() if len(t) == next_k]        
+        k_patterns = [t for t in freq_patterns.keys() if len(t) == k]        
+        closed_patterns.extend(k_patterns)
+    print(closed_patterns)
+
+f = open('input2.txt', 'r')
 lines = f.read().splitlines()
 f.close()
 
@@ -81,4 +106,8 @@ min_sup = int(lines[0])
 transactions = lines[1:]
 freq_itemsets = None
 freq_itemsets = apriori(min_sup, transactions)
-print(freq_itemsets)
+print_freq_patterns(freq_itemsets)
+print_closed_patterns(freq_itemsets)
+
+
+# a pattern is a max pattern if it is frequent and there is no frequent super pattern

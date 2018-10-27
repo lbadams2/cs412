@@ -16,13 +16,12 @@ def apriori(min_sup, transactions):
     loop_range = range(2, len(freq_itemsets))
     for k in loop_range:
         itemsets = list(freq_itemsets.keys())
-        #convert to tuple
-        #itemsets = [(x,) for x in itemsets]
         sorted_itemsets = sorted(itemsets)
         candidate_k_itemsets = apriori_gen(sorted_itemsets)
         counter = {}
         for t in transactions:
-            sorted_t = filter(str.strip, sorted([*t]))
+            t = t.split(' ')
+            sorted_t = sorted([*t])
             # need to order each subset alphabetically
             k_subsets_of_t = set(itertools.combinations(sorted_t, k))
             candidates_in_t = list(set(candidate_k_itemsets) & k_subsets_of_t)            

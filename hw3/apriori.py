@@ -84,16 +84,17 @@ def print_closed_patterns(freq_patterns):
     while k_patterns:        
         k = k + 1
         next_patterns = [t for t in freq_patterns.keys() if len(t) == k]
-        #while next_patterns:            
         for pattern in k_patterns:
             for next_pattern in next_patterns:
-                set_pattern = set(pattern)
+                if isinstance(pattern, str):
+                    set_pattern = set()
+                    set_pattern.add(pattern)
+                else:
+                    set_pattern = set(pattern)
                 set_next_pattern = set(next_pattern)
                 if set_pattern.issubset(set_next_pattern) and freq_patterns[pattern] == freq_patterns[next_pattern]:                    
                     closed_patterns.remove(pattern)
-                    break
-            #next_k = k + 1
-            #next_patterns = [t for t in freq_patterns.keys() if len(t) == next_k]        
+                    break   
         k_patterns = [t for t in freq_patterns.keys() if len(t) == k]        
         closed_patterns.extend(k_patterns)
     print(closed_patterns)

@@ -7,6 +7,7 @@ def apriori(min_sup, transactions):
     for t in transactions:
         items = t.split(' ')
         for item in items:
+            item = (item,)
             if item not in counter:
                 counter[item] = 1
             else:
@@ -38,11 +39,11 @@ def apriori(min_sup, transactions):
 
 def apriori_gen(itemset):
     candidate_itemsets = []
-    if isinstance(itemset[0], str):
-        k = 1
-        return list(itertools.combinations(itemset, 2))
-    else:
-        k = len(itemset[0])        
+    k = len(itemset[0])
+    if k == 1:
+        one_item_list = [i[0] for i in itemset]
+        return list(itertools.combinations(one_item_list, 2))
+
     loop_range = range(0, len(itemset) - 1)
     for i in loop_range:
         item = itemset[i]
@@ -78,18 +79,14 @@ def has_infrequent_subset(candidate_itemset, itemsets):
 # a pattern is a max pattern if it is frequent and there is no frequent super pattern
 def get_closed_or_max_patterns(freq_patterns, isClosed):
     k = 1
-    k_patterns = [t for t in freq_patterns.keys() if isinstance(t, str)]
+    k_patterns = [t for t in freq_patterns.keys() if len(t) == 1]
     closed_patterns = list(k_patterns)
     while k_patterns:        
         k = k + 1
         next_patterns = [t for t in freq_patterns.keys() if len(t) == k]
         for pattern in k_patterns:
             for next_pattern in next_patterns:
-                if isinstance(pattern, str):
-                    set_pattern = set()
-                    set_pattern.add(pattern)
-                else:
-                    set_pattern = set(pattern)
+                set_pattern = set(pattern)
                 set_next_pattern = set(next_pattern)
                 if isClosed:
                     if set_pattern.issubset(set_next_pattern) and freq_patterns[pattern] == freq_patterns[next_pattern]:                    
@@ -104,46 +101,42 @@ def get_closed_or_max_patterns(freq_patterns, isClosed):
     return {k:freq_patterns[k] for k in closed_patterns if k in freq_patterns}
 
 def sort_patterns(a, b):    
-    if a[1] > b[1]:
-        return -1
+    if a[1] < b[1]:
+        return 1
     elif a[1] == b[1]:
         a_str = ''.join(a[0])
         b_str = ''.join(b[0])
-        if a_str < b_str:
-            return -1
-        elif a_str > b_str:
+        if a_str > b_str:
             return 1
+        elif a_str < b_str:
+            return -1
         else:
             return 0
     else:
-        return 1
+        return -1
 
 def print_output(freq_patterns, closed_patterns, max_patterns):
     sorted_patterns = sorted(freq_patterns.items(), key=functools.cmp_to_key(sort_patterns))
     sorted_closed_patterns = sorted(closed_patterns.items(), key=functools.cmp_to_key(sort_patterns))
     sorted_max_patterns = sorted(max_patterns.items(), key=functools.cmp_to_key(sort_patterns))
     for pattern in sorted_patterns:
-        disp = pattern[0]
-        if isinstance(pattern[0], tuple):
-            disp = ' '.join(pattern[0])
+        disp = ' '.join(pattern[0])
         print(pattern[1], '[' + disp + ']')
     print('')
     for pattern in sorted_closed_patterns:
-        disp = pattern[0]
-        if isinstance(pattern[0], tuple):
-            disp = ' '.join(pattern[0])
+        disp = ' '.join(pattern[0])
         print(pattern[1], '[' + disp + ']')
     print('')
     for pattern in sorted_max_patterns:
-        disp = pattern[0]
-        if isinstance(pattern[0], tuple):
-            disp = ' '.join(pattern[0])
+        disp = ' '.join(pattern[0])
         print(pattern[1], '[' + disp + ']')
 
-#f = open('input2.txt', 'r')
 lines = []
 for line in sys.stdin:
     lines.append(line.strip())
+
+#f = open('input2.txt', 'r')
+#lines = f.read().splitlines()
 #f.close()
 
 min_sup = int(lines[0])

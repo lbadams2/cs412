@@ -102,29 +102,28 @@ def get_closed_or_max_patterns(freq_patterns, isClosed):
         closed_patterns.extend(k_patterns)
     return closed_patterns
 
-def sort_patterns(a, b):
+def sort_patterns(a, b):    
     if a[1] > b[1]:
-        return 1
-    elif a[1] == b[1]:
-        if isinstance(a[0], str) and isinstance(b[0], str):
-            test = a[0] < b[0]
-            return a[0] < b[0]
-        elif isinstance(a[0], str) and not isinstance(b[0], str):
-            test = a[0] < b[0][0]
-            return a[0] < b[0][0]
-        elif not isinstance(a[0], str) and isinstance(b[0], str):
-            test = a[0][0] < b[0]
-            return a[0][0] < b[0]
-        else:
-            return a[0][0] < b[0][0]
-    else:
         return -1
+    elif a[1] == b[1]:
+        a_str = ''.join(a[0])
+        b_str = ''.join(b[0])
+        if a_str < b_str:
+            return -1
+        elif a_str > b_str:
+            return 1
+        else:
+            return 0
+    else:
+        return 1
 
 def print_output(freq_patterns, closed_patterns, max_patterns):
-    #sorted_patterns = sorted(freq_patterns.items(), reverse=True, key=lambda kv: kv[1])
-    test = freq_patterns.items()
     sorted_patterns = sorted(freq_patterns.items(), key=functools.cmp_to_key(sort_patterns))
-    print(sorted_patterns)
+    for pattern in sorted_patterns:
+        disp = pattern[0]
+        if isinstance(pattern[0], tuple):
+            disp = ' '.join(pattern[0])
+        print(pattern[1], '[' + disp + ']')
 
 f = open('input1.txt', 'r')
 lines = f.read().splitlines()

@@ -1,4 +1,5 @@
 import itertools
+import functools
 
 def apriori(min_sup, transactions):
     counter = {}
@@ -72,12 +73,9 @@ def has_infrequent_subset(candidate_itemset, itemsets):
             return True
     return False
 
-def print_freq_patterns(freq_patterns):
-    sorted_patterns = sorted(freq_patterns.items(), key=lambda kv: kv[1])
-    print(sorted_patterns)
-
 # a pattern is closed if it is frequent and there is no super pattern with the same support
-def print_closed_patterns(freq_patterns):
+# a pattern is a max pattern if it is frequent and there is no frequent super pattern
+def get_closed_or_max_patterns(freq_patterns, isClosed):
     k = 1
     k_patterns = [t for t in freq_patterns.keys() if isinstance(t, str)]
     closed_patterns = list(k_patterns)
@@ -92,14 +90,41 @@ def print_closed_patterns(freq_patterns):
                 else:
                     set_pattern = set(pattern)
                 set_next_pattern = set(next_pattern)
-                if set_pattern.issubset(set_next_pattern) and freq_patterns[pattern] == freq_patterns[next_pattern]:                    
-                    closed_patterns.remove(pattern)
-                    break   
+                if isClosed:
+                    if set_pattern.issubset(set_next_pattern) and freq_patterns[pattern] == freq_patterns[next_pattern]:                    
+                        closed_patterns.remove(pattern)
+                        break
+                else:
+                    if set_pattern.issubset(set_next_pattern):
+                        closed_patterns.remove(pattern)
+                        break
         k_patterns = [t for t in freq_patterns.keys() if len(t) == k]        
         closed_patterns.extend(k_patterns)
-    print(closed_patterns)
+    return closed_patterns
 
-f = open('input2.txt', 'r')
+def sort_patterns(a, b):
+    if a[1] > b[1]:
+        return 1
+    elif a[1] == b[1]:
+        if isinstance(a[0], str) and isinstance(b[0], str):
+            test = a[0] < b[0]
+            return a[0] < b[0]
+        if isinstance(a[0], str) and not isinstance(b[0], str):
+            test = a[0] < b[0][0]
+            return a[0] < b[0][0]
+        if not isinstance(a[0], str) and isinstance(b[0], str):
+            test = a[0][0] < b[0]
+            return a[0][0] < b[0]
+    else:
+        return -1
+
+def print_output(freq_patterns, closed_patterns, max_patterns):
+    #sorted_patterns = sorted(freq_patterns.items(), reverse=True, key=lambda kv: kv[1])
+    test = freq_patterns.items()
+    sorted_patterns = sorted(freq_patterns.items(), key=functools.cmp_to_key(sort_patterns))
+    print(sorted_patterns)
+
+f = open('input1.txt', 'r')
 lines = f.read().splitlines()
 f.close()
 
@@ -107,8 +132,6 @@ min_sup = int(lines[0])
 transactions = lines[1:]
 freq_itemsets = None
 freq_itemsets = apriori(min_sup, transactions)
-print_freq_patterns(freq_itemsets)
-print_closed_patterns(freq_itemsets)
-
-
-# a pattern is a max pattern if it is frequent and there is no frequent super pattern
+closed_patterns = get_closed_or_max_patterns(freq_itemsets, True)
+max_patterns = get_closed_or_max_patterns(freq_itemsets, False)
+print_output(freq_itemsets, closed_patterns, max_patterns)

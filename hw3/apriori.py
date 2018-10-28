@@ -109,12 +109,14 @@ def sort_patterns(a, b):
         if isinstance(a[0], str) and isinstance(b[0], str):
             test = a[0] < b[0]
             return a[0] < b[0]
-        if isinstance(a[0], str) and not isinstance(b[0], str):
+        elif isinstance(a[0], str) and not isinstance(b[0], str):
             test = a[0] < b[0][0]
             return a[0] < b[0][0]
-        if not isinstance(a[0], str) and isinstance(b[0], str):
+        elif not isinstance(a[0], str) and isinstance(b[0], str):
             test = a[0][0] < b[0]
             return a[0][0] < b[0]
+        else:
+            return a[0][0] < b[0][0]
     else:
         return -1
 

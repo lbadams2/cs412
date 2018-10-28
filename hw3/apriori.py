@@ -1,5 +1,6 @@
 import itertools
 import functools
+import sys
 
 def apriori(min_sup, transactions):
     counter = {}
@@ -99,8 +100,8 @@ def get_closed_or_max_patterns(freq_patterns, isClosed):
                         closed_patterns.remove(pattern)
                         break
         k_patterns = [t for t in freq_patterns.keys() if len(t) == k]        
-        closed_patterns.extend(k_patterns)
-    return closed_patterns
+        closed_patterns.extend(k_patterns)    
+    return {k:freq_patterns[k] for k in closed_patterns if k in freq_patterns}
 
 def sort_patterns(a, b):    
     if a[1] > b[1]:
@@ -119,15 +120,31 @@ def sort_patterns(a, b):
 
 def print_output(freq_patterns, closed_patterns, max_patterns):
     sorted_patterns = sorted(freq_patterns.items(), key=functools.cmp_to_key(sort_patterns))
+    sorted_closed_patterns = sorted(closed_patterns.items(), key=functools.cmp_to_key(sort_patterns))
+    sorted_max_patterns = sorted(max_patterns.items(), key=functools.cmp_to_key(sort_patterns))
     for pattern in sorted_patterns:
         disp = pattern[0]
         if isinstance(pattern[0], tuple):
             disp = ' '.join(pattern[0])
         print(pattern[1], '[' + disp + ']')
+    print('')
+    for pattern in sorted_closed_patterns:
+        disp = pattern[0]
+        if isinstance(pattern[0], tuple):
+            disp = ' '.join(pattern[0])
+        print(pattern[1], '[' + disp + ']')
+    print('')
+    for pattern in sorted_max_patterns:
+        disp = pattern[0]
+        if isinstance(pattern[0], tuple):
+            disp = ' '.join(pattern[0])
+        print(pattern[1], '[' + disp + ']')
 
-f = open('input1.txt', 'r')
-lines = f.read().splitlines()
-f.close()
+#f = open('input2.txt', 'r')
+lines = []
+for line in sys.stdin:
+    lines.append(line.strip())
+#f.close()
 
 min_sup = int(lines[0])
 transactions = lines[1:]

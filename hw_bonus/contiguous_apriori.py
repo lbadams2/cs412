@@ -67,7 +67,13 @@ class Location:
 
     def __str__(self):
         return str(self.transaction) + str(' ' + self.index)
-        
+
+    def is_adjacent_before(self, other):
+        if self.transaction != other.transaction:
+            return False
+        else:
+            if self.index - other.index == 
+
 
 def apriori(transactions):
     item_objs = []
@@ -78,7 +84,7 @@ def apriori(transactions):
         index_range = range(0, len(vals) - 1)
         for j in index_range:
             val = vals[j]
-            item = Item(val, i, j)        
+            item = Item((val,), i, j)        
             if item not in item_objs:
                 item_objs.append(item)
             else:
@@ -105,9 +111,13 @@ def apriori_gen(transactions, itemset, k):
         location_dict = create_location_dict(freq_items_in_transaction)
         #freq_items_in_transaction = {k:v for k,v in itemset if v.transaction == n}
         sorted_locations = sorted(location_dict.keys())
-        location_range = range(0, len(sorted_locations) - 1)
-        for loc in location_range:
-            item = sorted_freq_items[loc]
+        # stop at second to last for join checking
+        location_range = range(0, len(sorted_locations) - 2)
+        for i in location_range:
+            location = sorted_locations[i]
+            next_location = sorted_locations[i + 1]
+            if location.is_adjacent_before(next_location):
+                # join items
             #for offset in k:
             join_items = sorted_freq_items[i+1:i+k]
             offset = 1

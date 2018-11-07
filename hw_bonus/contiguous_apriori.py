@@ -6,8 +6,8 @@ import sys
 class Item:
     def __init__(self, val, transaction, index):
         self.val = val
-        self.transaction = transaction
-        self.index = index
+        self.locations = []
+        self.locations.append(Location(transaction, index))
 
     def _is_valid_operand(self, other):
         return (hasattr(other, "val") and
@@ -22,41 +22,77 @@ class Item:
     def __lt__(self, other):
         if not self._is_valid_operand(other):
             return NotImplemented
-        if self.transaction != other.transaction:
-            return self.transaction < other.transaction
         else:
-            return self.index < other.index
+            self_locations_sorted = sorted(self.locations)
+            other_locations_sorted = sorted(other.locations)
+            return self_locations_sorted[0] < other_locations_sorted[0]
 
     def __hash__(self):
         return hash(self.val)
 
     def __str__(self):
         return self.val.__str__()
+
+    def add_location(self, transaction, index):
+        self.locations.append(Location(transaction, index))
+
+@total_ordering
+class Location:
+    def __init__(self, transaction, index):
+        self.transaction = transaction
+        self.index = index
+
+    def _is_valid_operand(self, other):
+        return (hasattr(other, "transaction") and
+                hasattr(other, "index"))
+
+    def __key(self):
+        return (self.transaction, self.index)
+    
+    def __eq__(self, other):
+        if not self._is_valid_operand(other):
+            return NotImplemented
+        return self.__key() == other.__key()
+
+    def __lt__(self, other):
+        if not self._is_valid_operand(other):
+            return NotImplemented
+        if self.transaction != other.transaction:
+            return self.transaction < other.transaction
+        else:
+            return self.index < other.index
+
+    def __hash__(self):
+        return hash(self.__key())
+
+    def __str__(self):
+        return str(self.transaction) + str(' ' + self.index)
         
 
 def apriori(transactions):
-    counter = {}
+    item_objs = []
     trans_range = range(0,len(transactions) - 1)
     for i in trans_range:
         t = transactions[i]
-        items = t.split(' ')
-        items_range = range(0, len(items) - 1)
-        for j in items_range:
-            item = items[j]
-            item = Item((item,), i, j)
-            if item not in counter:
-                counter[item] = 1
+        vals = t.split(' ')
+        index_range = range(0, len(vals) - 1)
+        for j in index_range:
+            val = vals[j]
+            item = Item(val, i, j)        
+            if item not in item_objs:
+                item_objs.append(item)
             else:
-                counter[item] = counter[item] + 1
+                indexes = [k for k,item_obj in enumerate(item_objs) if item_obj == item]
+                item_objs[indexes[0]].add_location(i, j)
 
     # begins with frequent 1-itemsets
-    freq_itemsets = {k: v for k,v in counter.items() if v >= 2}
+    freq_itemsets = [i for i in item_objs if len(i.locations) >= 2]
     g_freq_itemsets = freq_itemsets
     loop_range = range(2, 5)
     for k in loop_range:
-        itemsets = list(freq_itemsets.keys())
-        sorted_itemsets = sorted(itemsets)
-        candidate_k_itemsets = apriori_gen(transactions, sorted_itemsets, k)
+        #itemsets = list(freq_itemsets.keys())
+        #sorted_itemsets = sorted(freq_itemsets)
+        candidate_k_itemsets = apriori_gen(transactions, freq_itemsets, k)
         freq_itemsets = {k: v for k,v in candidate_k_itemsets.items() if v >= 2}
         g_freq_itemsets.update(freq_itemsets)
     return g_freq_itemsets
@@ -66,10 +102,13 @@ def apriori_gen(transactions, itemset, k):
     k_itemset_counter = {}
     for n in num_transactions:
         freq_items_in_transaction = [i for i in itemset if i.transaction == n]
-        sorted_freq_items = sorted(freq_items_in_transaction)
-        item_range = range(0, len(sorted_freq_items))
-        for i in item_range:
-            item = sorted_freq_items[i]
+        location_dict = create_location_dict(freq_items_in_transaction)
+        #freq_items_in_transaction = {k:v for k,v in itemset if v.transaction == n}
+        sorted_locations = sorted(location_dict.keys())
+        location_range = range(0, len(sorted_locations) - 1)
+        for loc in location_range:
+            item = sorted_freq_items[loc]
+            #for offset in k:
             join_items = sorted_freq_items[i+1:i+k]
             offset = 1
             joinable = False
@@ -98,6 +137,13 @@ def has_infrequent_subset(candidate_itemset, itemsets):
         if subset not in itemsets:
             return True
     return False
+
+def create_location_dict(items):
+    location_dict = {}
+    for item in items:
+        for location in item.locations:
+            location_dict[location] = item
+    return location_dict
 
 def print_output(freq_patterns):
     for pattern in freq_patterns:

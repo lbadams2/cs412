@@ -11,8 +11,7 @@ class Item:
 
     def _is_valid_operand(self, other):
         return (hasattr(other, "val") and
-                hasattr(other, "transaction") and
-                hasattr(other, "index"))
+                hasattr(other, "locations"))
     
     def __eq__(self, other):
         if not self._is_valid_operand(other):
@@ -68,26 +67,21 @@ class Location:
     def __str__(self):
         return str(self.transaction) + str(' ' + self.index)
 
-    def is_adjacent_before(self, other):
-        if self.transaction != other.transaction:
-            return False
-        else:
-            if self.index - other.index == 
-
 
 def apriori(transactions):
     item_objs = []
-    trans_range = range(0,len(transactions) - 1)
+    trans_range = range(0,len(transactions))
     for i in trans_range:
         t = transactions[i]
         vals = t.split(' ')
-        index_range = range(0, len(vals) - 1)
+        index_range = range(0, len(vals))
         for j in index_range:
             val = vals[j]
             item = Item((val,), i, j)        
             if item not in item_objs:
                 item_objs.append(item)
             else:
+                ######### change to return first index #####################
                 indexes = [k for k,item_obj in enumerate(item_objs) if item_obj == item]
                 item_objs[indexes[0]].add_location(i, j)
 
@@ -103,57 +97,61 @@ def apriori(transactions):
         g_freq_itemsets.update(freq_itemsets)
     return g_freq_itemsets
 
+# itemset is frequent list of Item objects
 def apriori_gen(transactions, itemset, k):
     num_transactions = range(0, len(transactions))
     k_itemset_counter = {}
     for n in num_transactions:
-        freq_items_in_transaction = [i for i in itemset if i.transaction == n]
-        location_dict = create_location_dict(freq_items_in_transaction)
+        ################ optimization return dict for all transactions #####################
+        locations_in_transaction_dict = create_location_dict(itemset, n)
+        sorted_locations = sorted(locations_in_transaction_dict.keys())
+        #freq_items_in_transaction = [ for i in itemset if i.transaction == n]
         #freq_items_in_transaction = {k:v for k,v in itemset if v.transaction == n}
-        sorted_locations = sorted(location_dict.keys())
         # stop at second to last for join checking
-        location_range = range(0, len(sorted_locations) - 2)
+        location_range = range(0, len(sorted_locations) - 1)
         for i in location_range:
             location = sorted_locations[i]
             next_location = sorted_locations[i + 1]
-            if location.is_adjacent_before(next_location):
-                # join items
-            #for offset in k:
-            join_items = sorted_freq_items[i+1:i+k]
-            offset = 1
-            joinable = False
-            for join_item in join_items:
-                if item.index == join_item.index + offset:
-                    joinable = True
-                else:
-                    joinable = False
-                    break
-                offset = offset + 1
-            if joinable:
-                item_list = list(item)
-                item_list.extend(join_items)
-                candidate_joined_item = tuple(item_list)
-                if has_infrequent_subset(candidate_joined_item, itemset):
+            if location_adjacent(location, next_location, k-1):
+                item = locations_in_transaction_dict[location]
+                next_item = locations_in_transaction_dict[next_location]
+                item_val_list = list(item.val)
+                item_val_list.extend(list(next_item.val))
+                candidate_joined_val = tuple(item_val_list)                
+                if has_infrequent_subset(candidate_joined_val, itemset, k):
                     continue
-                if candidate_joined_item not in k_itemset_counter:
-                    k_itemset_counter[candidate_joined_item] = 1
+                joined_item = Item(candidate_joined_val, i, n)
+                if joined_item not in k_itemset_counter:
+                    k_itemset_counter[joined_item] = 1
                 else:
-                    k_itemset_counter[candidate_joined_item] = k_itemset_counter[candidate_joined_item] + 1
+                    k_itemset_counter[joined_item] = k_itemset_counter[joined_item] + 1
     return k_itemset_counter
 
-def has_infrequent_subset(candidate_itemset, itemsets):
-    k_minus = len(itemsets[0])
+def has_infrequent_subset(candidate_itemset, itemsets, k):
+    ########## could optimize to not create this list #############
+    freq_tuples = [i.val for i in itemsets]
+    k_minus = k - 1
     for subset in itertools.combinations(candidate_itemset, k_minus):
-        if subset not in itemsets:
+        if subset not in freq_tuples:
             return True
     return False
 
-def create_location_dict(items):
+def create_location_dict(items, transaction_num):
     location_dict = {}
     for item in items:
         for location in item.locations:
-            location_dict[location] = item
+            if location.transaction == transaction_num:
+                location_dict[location] = item
     return location_dict
+
+def location_adjacent(location, next_location, offset):
+    if location.transaction == next_location.transaction:
+        if location.index + offset == next_location.index:
+            return True
+        else:
+            return False
+    else:
+        return False
 
 def print_output(freq_patterns):
     for pattern in freq_patterns:

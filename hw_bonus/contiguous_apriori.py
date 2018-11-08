@@ -87,20 +87,20 @@ def apriori(transactions):
 
     # begins with frequent 1-itemsets
     freq_itemsets = [i for i in item_objs if len(i.locations) >= 2]
-    g_freq_itemsets = freq_itemsets
+    g_freq_itemsets = {}
     loop_range = range(2, 5)
     for k in loop_range:
         #itemsets = list(freq_itemsets.keys())
         #sorted_itemsets = sorted(freq_itemsets)
         candidate_k_itemsets = apriori_gen(transactions, freq_itemsets, k)
-        freq_itemsets = {k: v for k,v in candidate_k_itemsets.items() if v >= 2}
+        freq_itemsets = [i for i in candidate_k_itemsets if len(i.locations) >= 2]
         g_freq_itemsets.update(freq_itemsets)
     return g_freq_itemsets
 
 # itemset is frequent list of Item objects
 def apriori_gen(transactions, itemset, k):
     num_transactions = range(0, len(transactions))
-    k_itemset_counter = {}
+    k_item_objs = []
     for n in num_transactions:
         ################ optimization return dict for all transactions #####################
         locations_in_transaction_dict = create_location_dict(itemset, n)
@@ -120,12 +120,13 @@ def apriori_gen(transactions, itemset, k):
                 candidate_joined_val = tuple(item_val_list)                
                 if has_infrequent_subset(candidate_joined_val, itemset, k):
                     continue
-                joined_item = Item(candidate_joined_val, i, n)
-                if joined_item not in k_itemset_counter:
-                    k_itemset_counter[joined_item] = 1
-                else:
-                    k_itemset_counter[joined_item] = k_itemset_counter[joined_item] + 1
-    return k_itemset_counter
+                joined_item = Item(candidate_joined_val, n, i)
+                try:
+                    item_index = k_item_objs.index(joined_item)
+                    k_item_objs[item_index].add_location(n, i)
+                except ValueError:
+                    k_item_objs.append(joined_item)
+    return k_item_objs
 
 def has_infrequent_subset(candidate_itemset, itemsets, k):
     ########## could optimize to not create this list #############
@@ -158,7 +159,7 @@ def print_output(freq_patterns):
         disp = ' '.join(pattern.val)
         print(freq_patterns[pattern], '[' + disp + ']')
 
-f = open('/Users/liamadams/Documents/school/CS412/hw_bonus/input.txt', 'r')
+f = open('hw_bonus\\input.txt', 'r')
 lines = f.read().splitlines()
 f.close()
 contiguous_freq_itemsets = apriori(lines)

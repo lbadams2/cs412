@@ -88,7 +88,7 @@ def apriori(transactions):
     # begins with frequent 1-itemsets
     freq_itemsets = [i for i in item_objs if len(i.locations) >= 2]
     g_freq_itemsets = []
-    loop_range = range(2, 5)
+    loop_range = range(2, 6)
     for k in loop_range:
         #itemsets = list(freq_itemsets.keys())
         #sorted_itemsets = sorted(freq_itemsets)
@@ -113,6 +113,7 @@ def apriori_gen(transactions, itemset, k):
         for location in sorted_locations:
             try:
                 next_location = sorted_locations[i + 1]
+                i = i + 1
             except IndexError:
                 break
             if location_adjacent(location, next_location, k-1):
@@ -120,7 +121,7 @@ def apriori_gen(transactions, itemset, k):
                 next_item = locations_in_transaction_dict[next_location]
                 item_val_list = list(item.val)
                 if k > 2:
-                    item_val_list.extend(list(next_item.val)[1:])
+                    item_val_list.extend(list(next_item.val)[k-2:])
                 else:
                     item_val_list.extend(list(next_item.val))
                 candidate_joined_val = tuple(item_val_list)                
@@ -132,7 +133,6 @@ def apriori_gen(transactions, itemset, k):
                     k_item_objs[item_index].add_location(n, location.index)
                 except ValueError:
                     k_item_objs.append(joined_item)
-            i = i + 1
     return k_item_objs
 
 def has_infrequent_subset(candidate_itemset, itemsets, k):
@@ -140,9 +140,14 @@ def has_infrequent_subset(candidate_itemset, itemsets, k):
     freq_tuples = [i.val for i in itemsets]
     k_minus = k - 1
     ## Don't get all subsets, has to be adjacent
-    for subset in itertools.combinations(candidate_itemset, k_minus):
-        if subset not in freq_tuples:
-            return True
+    if k_minus == 1:
+        for subset in itertools.combinations(candidate_itemset, k_minus):
+            if subset not in freq_tuples:
+                return True
+    else:
+        for i, j in itertools.combinations(range(len(candidate_itemset) + 1), 2):
+             if j - i == k_minus and candidate_itemset[i:j] not in freq_tuples:
+                return True
     return False
 
 def create_location_dict(items, transaction_num):
@@ -167,7 +172,7 @@ def print_output(freq_patterns):
         disp = ' '.join(pattern.val)
         print(freq_patterns[pattern], '[' + disp + ']')
 
-f = open('../hw_bonus/input.txt', 'r')
+f = open('hw_bonus/input.txt', 'r')
 lines = f.read().splitlines()
 f.close()
 contiguous_freq_itemsets = apriori(lines)

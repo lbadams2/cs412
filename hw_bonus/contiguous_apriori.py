@@ -78,23 +78,23 @@ def apriori(transactions):
         for j in index_range:
             val = vals[j]
             item = Item((val,), i, j)        
-            if item not in item_objs:
+            try:
+                index = item_objs.index(item)
+                item_objs[index].add_location(i, j)
+                #indexes = [k for k,item_obj in enumerate(item_objs) if item_obj == item]
+            except ValueError:
                 item_objs.append(item)
-            else:
-                ######### change to return first index #####################
-                indexes = [k for k,item_obj in enumerate(item_objs) if item_obj == item]
-                item_objs[indexes[0]].add_location(i, j)
 
     # begins with frequent 1-itemsets
     freq_itemsets = [i for i in item_objs if len(i.locations) >= 2]
-    g_freq_itemsets = {}
+    g_freq_itemsets = []
     loop_range = range(2, 5)
     for k in loop_range:
         #itemsets = list(freq_itemsets.keys())
         #sorted_itemsets = sorted(freq_itemsets)
         candidate_k_itemsets = apriori_gen(transactions, freq_itemsets, k)
         freq_itemsets = [i for i in candidate_k_itemsets if len(i.locations) >= 2]
-        g_freq_itemsets.update(freq_itemsets)
+        g_freq_itemsets.extend(freq_itemsets)
     return g_freq_itemsets
 
 # itemset is frequent list of Item objects
@@ -108,30 +108,38 @@ def apriori_gen(transactions, itemset, k):
         #freq_items_in_transaction = [ for i in itemset if i.transaction == n]
         #freq_items_in_transaction = {k:v for k,v in itemset if v.transaction == n}
         # stop at second to last for join checking
-        location_range = range(0, len(sorted_locations) - 1)
-        for i in location_range:
-            location = sorted_locations[i]
-            next_location = sorted_locations[i + 1]
+        #location_range = range(0, len(sorted_locations) - 1)
+        i = 0
+        for location in sorted_locations:
+            try:
+                next_location = sorted_locations[i + 1]
+            except IndexError:
+                break
             if location_adjacent(location, next_location, k-1):
                 item = locations_in_transaction_dict[location]
                 next_item = locations_in_transaction_dict[next_location]
                 item_val_list = list(item.val)
-                item_val_list.extend(list(next_item.val))
+                if k > 2:
+                    item_val_list.extend(list(next_item.val)[1:])
+                else:
+                    item_val_list.extend(list(next_item.val))
                 candidate_joined_val = tuple(item_val_list)                
                 if has_infrequent_subset(candidate_joined_val, itemset, k):
                     continue
-                joined_item = Item(candidate_joined_val, n, i)
+                joined_item = Item(candidate_joined_val, n, location.index)
                 try:
                     item_index = k_item_objs.index(joined_item)
-                    k_item_objs[item_index].add_location(n, i)
+                    k_item_objs[item_index].add_location(n, location.index)
                 except ValueError:
                     k_item_objs.append(joined_item)
+            i = i + 1
     return k_item_objs
 
 def has_infrequent_subset(candidate_itemset, itemsets, k):
     ########## could optimize to not create this list #############
     freq_tuples = [i.val for i in itemsets]
     k_minus = k - 1
+    ## Don't get all subsets, has to be adjacent
     for subset in itertools.combinations(candidate_itemset, k_minus):
         if subset not in freq_tuples:
             return True
@@ -147,7 +155,7 @@ def create_location_dict(items, transaction_num):
 
 def location_adjacent(location, next_location, offset):
     if location.transaction == next_location.transaction:
-        if location.index + offset == next_location.index:
+        if location.index + offset >= next_location.index:
             return True
         else:
             return False
@@ -159,7 +167,7 @@ def print_output(freq_patterns):
         disp = ' '.join(pattern.val)
         print(freq_patterns[pattern], '[' + disp + ']')
 
-f = open('hw_bonus\\input.txt', 'r')
+f = open('../hw_bonus/input.txt', 'r')
 lines = f.read().splitlines()
 f.close()
 contiguous_freq_itemsets = apriori(lines)

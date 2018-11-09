@@ -1,4 +1,5 @@
 import itertools
+import functools
 from functools import total_ordering
 import sys
 
@@ -90,8 +91,6 @@ def apriori(transactions):
     g_freq_itemsets = []
     loop_range = range(2, 6)
     for k in loop_range:
-        #itemsets = list(freq_itemsets.keys())
-        #sorted_itemsets = sorted(freq_itemsets)
         candidate_k_itemsets = apriori_gen(transactions, freq_itemsets, k)
         freq_itemsets = [i for i in candidate_k_itemsets if len(i.locations) >= 2]
         g_freq_itemsets.extend(freq_itemsets)
@@ -105,10 +104,6 @@ def apriori_gen(transactions, itemset, k):
         ################ optimization return dict for all transactions #####################
         locations_in_transaction_dict = create_location_dict(itemset, n)
         sorted_locations = sorted(locations_in_transaction_dict.keys())
-        #freq_items_in_transaction = [ for i in itemset if i.transaction == n]
-        #freq_items_in_transaction = {k:v for k,v in itemset if v.transaction == n}
-        # stop at second to last for join checking
-        #location_range = range(0, len(sorted_locations) - 1)
         i = 0
         for location in sorted_locations:
             try:
@@ -167,13 +162,34 @@ def location_adjacent(location, next_location, offset):
     else:
         return False
 
+def sort_items(i1, i2):
+    if len(i1.locations) < len(i2.locations):
+        return 1
+    elif len(i1.locations) == len(i2.locations):
+        i1_str = ''.join(i1.val)
+        i2_str = ''.join(i2.val)
+        if i1_str > i2_str:
+            return 1
+        if i1_str < i2_str:
+            return -1
+        else:
+            return 0
+    else:
+        return -1
+
 def print_output(freq_patterns):
     for pattern in freq_patterns:
         disp = ' '.join(pattern.val)
-        print(freq_patterns[pattern], '[' + disp + ']')
+        print('[' + str(len(pattern.locations)) + ', ' + "'" + disp + "'" + ']')
 
-f = open('hw_bonus/input.txt', 'r')
-lines = f.read().splitlines()
-f.close()
+lines = []
+for line in sys.stdin:
+    lines.append(line.strip())
+
+#f = open('hw_bonus/input.txt', 'r')
+#lines = f.read().splitlines()
+#f.close()
+
 contiguous_freq_itemsets = apriori(lines)
-print_output(contiguous_freq_itemsets)
+sorted_freq_itemsets = sorted(contiguous_freq_itemsets, key=functools.cmp_to_key(sort_items))
+print_output(sorted_freq_itemsets[:20])

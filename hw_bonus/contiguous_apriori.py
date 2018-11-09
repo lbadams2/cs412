@@ -145,6 +145,7 @@ def has_infrequent_subset(candidate_itemset, itemsets, k):
                 return True
     return False
 
+######## optimization put this inside for loop in apriori method ####################
 def create_location_dict(items, transaction_num):
     location_dict = {}
     for item in items:

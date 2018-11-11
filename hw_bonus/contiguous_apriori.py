@@ -62,7 +62,7 @@ def apriori_gen(transactions, freq_items, transaction_freq_location_dict, k):
                 else:
                     item_val_list.extend(list(next_item))
                 candidate_joined_val = tuple(item_val_list)                
-                if has_infrequent_subset(candidate_joined_val, freq_items, k):
+                if offset == 1 and has_infrequent_subset(candidate_joined_val, freq_items, k):
                     continue
                 if candidate_joined_val not in k_all_items:
                     locations = []

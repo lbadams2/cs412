@@ -74,7 +74,7 @@ class Location:
 
 
 def apriori(transactions):
-    item_objs = []
+    all_items = {}
     freq_itemsets = set()
     freq_vals = set()
     transaction_freq_location_dict = {}
@@ -87,7 +87,7 @@ def apriori(transactions):
         for j in index_range:
             val = vals[j]
             temp_item = Item((val,), i, j)
-            update_set_and_location_dict(temp_item, item_objs, freq_itemsets, freq_vals, transaction_freq_location_dict)
+            update_set_and_location_dict(temp_item, all_items, freq_itemsets, freq_vals, transaction_freq_location_dict)
 
     # begins with frequent 1-itemsets
     g_freq_itemsets = []
@@ -103,7 +103,7 @@ def apriori(transactions):
 # itemset is frequent list of Item objects
 def apriori_gen(transactions, freq_vals, transaction_freq_location_dict, k):
     num_transactions = range(0, len(transactions))
-    k_item_objs = []
+    k_all_items = {}
     k_freq_vals = set()
     k_freq_items = set()
     k_transaction_freq_location_dict = {}
@@ -130,30 +130,30 @@ def apriori_gen(transactions, freq_vals, transaction_freq_location_dict, k):
                 if has_infrequent_subset(candidate_joined_val, freq_vals, k):
                     continue
                 temp_joined_item = Item(candidate_joined_val, n, location.index)
-                update_set_and_location_dict(temp_joined_item, k_item_objs, k_freq_items, k_freq_vals, k_transaction_freq_location_dict)
+                update_set_and_location_dict(temp_joined_item, k_all_items, k_freq_items, k_freq_vals, k_transaction_freq_location_dict)
     return k_freq_items, k_freq_vals, k_transaction_freq_location_dict
 
-def update_set_and_location_dict(temp_item, item_list, freq_items, freq_vals, transaction_freq_location_dict):
+def update_set_and_location_dict(temp_item, all_items, freq_items, freq_vals, transaction_freq_location_dict):
     location = temp_item.locations[0]                    
-    try:
-        index = item_list.index(temp_item)
-        list_item = item_list[index]
-        list_item.add_location(location)
-        if list_item not in freq_items:
-            freq_items.add(list_item)
-            freq_vals.add(list_item.val)
+    if temp_item in all_items:
+        all_items[temp_item].append(location)
+        temp_item.locations = all_items[temp_item]
+        if temp_item not in freq_items:
+            freq_items.add(temp_item)
+            freq_vals.add(temp_item.val)
         else:
-            freq_items.remove(list_item)
-            freq_items.add(list_item)                
-        item_locations = list_item.get_locations()
+            freq_items.remove(temp_item)
+            freq_items.add(temp_item)                
+        item_locations = temp_item.get_locations()
         if len(item_locations) == 2:
             for item_location in item_locations:
                 transaction_freq_location_dict[item_location.transaction][item_location] = temp_item.val
         else:
             transaction_freq_location_dict[location.transaction][location] = temp_item.val
         #indexes = [k for k,item_obj in enumerate(item_objs) if item_obj == item]
-    except ValueError:
-        item_list.append(temp_item)
+    else:
+        all_items[temp_item] = []
+        all_items[temp_item].append(location)
 
 def has_infrequent_subset(candidate_itemset, freq_tuples, k):
     k_minus = k - 1

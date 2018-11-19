@@ -23,8 +23,7 @@ def gini_index(class_probs):
         summation = summation + prob*prob
     return 1 - summation
 
-def add_split_data(parent_table, tuple_num, split_table, unique_vals, class_dict, class_probs, class_counter):
-    row = parent_table[tuple_num]
+def add_split_data(row, tuple_num, split_table, unique_vals, class_dict, class_probs, class_counter):
     split_table[tuple_num] = row
     for row_attr, val in row.items():
         if row_attr not in unique_vals:
@@ -61,10 +60,10 @@ def create_split_data(table, subset, second_subset, split_attr, class_dict):
     for tuple_num, v in table.items():
         # first split
         if v[attr] in subset:
-            add_split_data(table, tuple_num, first_split_table, first_split_attr_unique_vals, first_new_class_dict, first_class_probs, first_class_counter)
+            add_split_data(v, tuple_num, first_split_table, first_split_attr_unique_vals, first_new_class_dict, first_class_probs, first_class_counter)
         # second split
         else:
-            add_split_data(table, tuple_num, second_split_table, second_split_attr_unique_vals, second_new_class_dict, second_class_probs, second_class_counter)
+            add_split_data(v, tuple_num, second_split_table, second_split_attr_unique_vals, second_new_class_dict, second_class_probs, second_class_counter)
 
     if len(subset) == 1:
         # need to convert subset to correct type

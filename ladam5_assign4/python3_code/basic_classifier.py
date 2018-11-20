@@ -8,11 +8,10 @@ class Node:
         self.class_label = None
 
 class Split_Data:
-    def __init__(self, data, attr, attr_vals_unique, class_dict, class_probs, val_subset, is_positive):
+    def __init__(self, data, attr, attr_vals_unique, class_probs, val_subset, is_positive):
         self.data = data
         self.attr = attr
         self.attr_vals_unique = attr_vals_unique
-        self.class_dict = class_dict
         self.class_probs = class_probs
         self.subset = val_subset
         self.is_positive_branch = is_positive
@@ -23,7 +22,7 @@ def gini_index(class_probs):
         summation = summation + prob*prob
     return 1 - summation
 
-def add_split_data(row, tuple_num, split_table, unique_vals, class_dict, class_probs, class_counter):
+def add_split_data(row, tuple_num, split_table, unique_vals, class_counter):
     split_table[tuple_num] = row
     for row_attr, val in row.items():
         if row_attr not in unique_vals:
@@ -32,57 +31,53 @@ def add_split_data(row, tuple_num, split_table, unique_vals, class_dict, class_p
             unique_vals[row_attr] = val_set
         else:
             if val not in unique_vals[row_attr]:
-                unique_vals[val]
-    class_label = class_dict[tuple_num]
-    class_dict[tuple_num] = class_label
-    if not class_counter[class_label]:
+                unique_vals[row_attr].add(val)
+    class_label = row['class']
+    if class_label not in class_counter:
         class_counter[class_label] = 1
     else:
         class_counter[class_label] = class_counter[class_label] + 1
-    class_probs[class_label] = class_counter[class_label] / len(class_counter.values())
 
-def create_split_data(table, subset, second_subset, split_attr, class_dict):
+def create_split_data(table, subset, second_subset, split_attr):
     first_split_table = {}
     second_split_table = {}
 
     first_split_attr_unique_vals = {}
     second_split_attr_unique_vals = {}
 
-    first_new_class_dict = {}
-    second_new_class_dict = {}
-
-    first_class_probs = {}
-    second_class_probs = {}
-
     first_class_counter = {}
     second_class_counter = {}
 
+    first_split_count = 0
+    second_split_count = 0
     for tuple_num, v in table.items():
         # first split
-        if v[attr] in subset:
-            add_split_data(v, tuple_num, first_split_table, first_split_attr_unique_vals, first_new_class_dict, first_class_probs, first_class_counter)
+        if v[split_attr] in subset:
+            add_split_data(v, tuple_num, first_split_table, first_split_attr_unique_vals, first_class_counter)
+            first_split_count = first_split_count + 1
         # second split
         else:
-            add_split_data(v, tuple_num, second_split_table, second_split_attr_unique_vals, second_new_class_dict, second_class_probs, second_class_counter)
+            add_split_data(v, tuple_num, second_split_table, second_split_attr_unique_vals, second_class_counter)
+            second_split_count = second_split_count + 1
 
     if len(subset) == 1:
-        # need to convert subset to correct type
         first_split_attr_unique_vals.pop(subset)
     if len(second_subset) == 1:
         second_split_attr_unique_vals.pop(second_subset)
+
+    first_class_probs = {}
+    second_class_probs = {}
     
-    first_split_data = Split_Data(first_split_table, attr, first_split_attr_unique_vals, first_new_class_dict, first_class_probs, subset, True)
-    second_split_data = Split_Data(second_split_table, attr, second_split_attr_unique_vals, second_new_class_dict, second_class_probs, second_subset, False)
+    first_split_data = Split_Data(first_split_table, split_attr, first_split_attr_unique_vals, first_class_probs, subset, True)
+    second_split_data = Split_Data(second_split_table, split_attr, second_split_attr_unique_vals, second_class_probs, second_subset, False)
     return first_split_data, second_split_data
 
-def gini_index_attr(attr_val_table, attr_vals_unique, class_tuple_dict):
+def gini_index_attr(attr_val_table, attr_vals_unique):
     total_count = len(attr_val_table.keys())
     min_attr_gini_index = None
     best_split = None
 
-    for item in attr_vals_unique.items():
-        unique_vals = item[1]
-        attr = item[0]
+    for attr, unique_vals in attr_vals_unique.items():
         subsets = chain.from_iterable(combinations(unique_vals, n) for n in range(1, len(unique_vals)//2))
         subset_gini_index_min = None
         best_attr_split = None
@@ -90,8 +85,9 @@ def gini_index_attr(attr_val_table, attr_vals_unique, class_tuple_dict):
         for subset in subsets:
             #first_split = {tuple_num: attr_val_table[tuple_num] for tuple_num, v in attr_val_table.items() if v[attr] in subset}
             #second_split = {k: attr_val_table[k] for k in attr_val_table.keys() ^ first_split.keys()}
+            subset = set(subset)
             second_subset = subset ^ unique_vals
-            split_data = create_split_data(attr_val_table, subset, second_subset, attr, class_tuple_dict)
+            split_data = create_split_data(attr_val_table, subset, second_subset, attr)
             first_split_data = split_data[0]
             second_split_data = split_data[1]
 
@@ -109,18 +105,19 @@ def gini_index_attr(attr_val_table, attr_vals_unique, class_tuple_dict):
     
     return best_split
 
-def generate_decision_tree(table, attr_list, class_dict):
+def generate_decision_tree(table, attr_list, class_probs):
     node = Node(table)
-    if len(class_dict.keys()) == 1:
-        node.class_label = class_dict.keys()[0]
+    if len(class_probs.keys()) == 1:
+        node.class_label = class_probs.keys()[0]
         return node
 
-    majority_class = max(class_dict, key=len(class_dict.get))
+    # how to break tie
+    majority_class = max(class_probs, key=class_probs.get)
     if not attr_list:        
         node.class_label = majority_class
         return node    
 
-    best_split = gini_index_attr(table, attr_list, class_dict)
+    best_split = gini_index_attr(table, attr_list)
     yes_split = best_split[0]
     no_split = best_split[1]
     
@@ -130,47 +127,61 @@ def generate_decision_tree(table, attr_list, class_dict):
         leaf_node.class_label = majority_class
         node.l = leaf_node
     else:
-        node.l = generate_decision_tree(yes_split.data, yes_split.attr_vals_unique, yes_split.class_dict)
+        node.l = generate_decision_tree(yes_split.data, yes_split.attr_vals_unique, yes_split.class_probs)
 
     if not no_split.data:
         leaf_node = Node(None)
         leaf_node.class_label = majority_class
         node.r = leaf_node
     else:
-        node.r = generate_decision_tree(no_split.data, no_split.attr_vals_unique, no_split.class_dict)
+        node.r = generate_decision_tree(no_split.data, no_split.attr_vals_unique, no_split.class_probs)
 
     return node
 
 
-class_tuple_dict = {}
-attr_vals_unique = {}
-attr_vals_table = {}
-with open('../ladam5_assign4/data/toy.train', 'r') as f:
-    i = 1
-    for line in f:
-        line = line.strip()       
-        elems = line.split(' ')
-        class_label = elems[0]
+def process_training_file():
+    total_class_probs = {}
+    attr_vals_unique = {}
+    attr_vals_table = {}
+    with open('ladam5_assign4/data/toy.train', 'r') as f:
+        total_class_counter = {}
+        i = 0
+        for line in f:
+            i = i + 1
+            line = line.strip()       
+            elems = line.split(' ')
+            class_label = elems[0]
 
-        if class_label not in class_tuple_dict:
-            class_tuple_dict[class_label] = set()
-            class_tuple_dict[class_label].add(i)
-        else:
-            class_tuple_dict[class_label].add(i)
-
-        attr_vals_table[i] = {}
-        for attr_val in elems[1:]:
-            attr_vals = attr_val.split(':')
-            attr = attr_vals[0]
-            val = attr_vals[1]
-            attr_vals_table[i][attr] = val
-            if attr not in attr_vals_unique:
-                val_set = set()
-                val_set.add(val)
-                attr_vals_unique[attr] = val_set
+            if class_label not in total_class_counter:
+                total_class_counter[class_label] = 1
             else:
-                if val not in attr_vals_unique[attr]:
-                    attr_vals_unique[attr].add(val)
-        i = i + 1
+                total_class_counter[class_label] = total_class_counter[class_label] + 1
+            #total_class_probs[class_label] = total_class_counter[class_label] / i
 
-tree = generate_decision_tree(attr_vals_table, attr_vals_unique, class_tuple_dict)
+            attr_vals_table[i] = {}
+            attr_vals_table[i]['class'] = class_label
+
+            for attr_val in elems[1:]:
+                attr_vals = attr_val.split(':')
+                attr = attr_vals[0]
+                val = attr_vals[1]
+                attr_vals_table[i][attr] = val
+
+                if attr not in attr_vals_unique:
+                    val_set = set()
+                    val_set.add(val)
+                    attr_vals_unique[attr] = val_set
+
+                else:
+                    if val not in attr_vals_unique[attr]:
+                        attr_vals_unique[attr].add(val)
+            
+        total_class_probs = {k: v/i for k, v in total_class_counter.items()}
+
+    return attr_vals_table, attr_vals_unique, total_class_probs
+
+processed_data = process_training_file()
+processed_table = processed_data[0]
+processed_unique_vals = processed_data[1]
+processed_class_probs = processed_data[2]
+tree = generate_decision_tree(processed_table, processed_unique_vals, processed_class_probs)

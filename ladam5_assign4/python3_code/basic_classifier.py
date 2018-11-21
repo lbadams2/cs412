@@ -25,6 +25,8 @@ def gini_index(class_probs):
 def add_split_data(row, tuple_num, split_table, unique_vals, class_counter):
     split_table[tuple_num] = row
     for row_attr, val in row.items():
+        if row_attr == 'class':
+            continue
         if row_attr not in unique_vals:
             val_set = set()
             val_set.add(val)
@@ -60,25 +62,35 @@ def create_split_data(table, subset, second_subset, split_attr):
             add_split_data(v, tuple_num, second_split_table, second_split_attr_unique_vals, second_class_counter)
             second_split_count = second_split_count + 1
 
+    # all tuples have same value for split_attr if subset is size 1
+    # won't be able to split on that attr subsequently, remove split_attr from unique vals table
     if len(subset) == 1:
-        first_split_attr_unique_vals.pop(subset)
+        first_split_attr_unique_vals.pop(split_attr)
     if len(second_subset) == 1:
-        second_split_attr_unique_vals.pop(second_subset)
+        second_split_attr_unique_vals.pop(split_attr)
 
-    first_class_probs = {}
-    second_class_probs = {}
+    first_class_probs = {k: v/first_split_count for k, v in first_class_counter.items()}
+    second_class_probs = {k: v/second_split_count for k, v in second_class_counter.items()}
     
     first_split_data = Split_Data(first_split_table, split_attr, first_split_attr_unique_vals, first_class_probs, subset, True)
     second_split_data = Split_Data(second_split_table, split_attr, second_split_attr_unique_vals, second_class_probs, second_subset, False)
     return first_split_data, second_split_data
 
 def gini_index_attr(attr_val_table, attr_vals_unique):
+    # maybe optimize to not call len()
     total_count = len(attr_val_table.keys())
     min_attr_gini_index = None
     best_split = None
 
     for attr, unique_vals in attr_vals_unique.items():
-        subsets = chain.from_iterable(combinations(unique_vals, n) for n in range(1, len(unique_vals)//2))
+        subsets = None
+        # can't split table on attr if it has same value for all tuples
+        if len(unique_vals) == 1:
+            continue
+        elif len(unique_vals) == 2 or len(unique_vals) == 3:
+            subsets = unique_vals
+        else:
+            subsets = chain.from_iterable(combinations(unique_vals, n) for n in range(1, len(unique_vals)//2))
         subset_gini_index_min = None
         best_attr_split = None
 
@@ -108,7 +120,7 @@ def gini_index_attr(attr_val_table, attr_vals_unique):
 def generate_decision_tree(table, attr_list, class_probs):
     node = Node(table)
     if len(class_probs.keys()) == 1:
-        node.class_label = class_probs.keys()[0]
+        node.class_label = list(class_probs.keys())[0]
         return node
 
     # how to break tie
@@ -143,7 +155,7 @@ def process_training_file():
     total_class_probs = {}
     attr_vals_unique = {}
     attr_vals_table = {}
-    with open('ladam5_assign4/data/toy.train', 'r') as f:
+    with open('../ladam5_assign4/data/toy.train', 'r') as f:
         total_class_counter = {}
         i = 0
         for line in f:

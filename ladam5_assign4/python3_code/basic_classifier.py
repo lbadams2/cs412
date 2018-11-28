@@ -1,4 +1,5 @@
 from itertools import chain, combinations
+import sys
 
 class Node:
     def __init__(self, data):
@@ -81,11 +82,13 @@ def gini_index_attr(attr_val_table, attr_vals_unique):
     total_count = len(attr_val_table.keys())
     min_attr_gini_index = None
     best_split = None
+    no_unique_vals = False
 
     for attr, unique_vals in attr_vals_unique.items():
         subsets = None
         # can't split table on attr if it has same value for all tuples
         if len(unique_vals) == 1:
+            no_unique_vals = True
             continue
         elif len(unique_vals) == 2 or len(unique_vals) == 3:
             subsets = unique_vals
@@ -115,7 +118,7 @@ def gini_index_attr(attr_val_table, attr_vals_unique):
             min_attr_gini_index = subset_gini_index_min
             best_split = best_attr_split
     
-    return best_split
+    return best_split, no_unique_vals
 
 def generate_decision_tree(table, attr_list, class_probs):
     node = Node(table)
@@ -129,7 +132,13 @@ def generate_decision_tree(table, attr_list, class_probs):
         node.class_label = majority_class
         return node    
 
-    best_split = gini_index_attr(table, attr_list)
+    gini_results = gini_index_attr(table, attr_list)
+    best_split = gini_results[0]
+    # rows in table are identical
+    if not best_split and gini_results[1]:
+        node.class_label = majority_class
+        return node
+
     yes_split = best_split[0]
     no_split = best_split[1]
     
@@ -151,11 +160,11 @@ def generate_decision_tree(table, attr_list, class_probs):
     return node
 
 
-def process_training_file():
+def process_training_file(training_file):
     total_class_probs = {}
     attr_vals_unique = {}
     attr_vals_table = {}
-    with open('../ladam5_assign4/data/toy.train', 'r') as f:
+    with open(training_file, 'r') as f:
         total_class_counter = {}
         i = 0
         for line in f:
@@ -192,8 +201,24 @@ def process_training_file():
 
     return attr_vals_table, attr_vals_unique, total_class_probs
 
-processed_data = process_training_file()
+
+def classify_test_file(decision_tree, test_file):
+    with open(test_file, 'r') as f:
+        for line in f:
+            temp_tree = decision_tree
+            line = line.strip()       
+            elems = line.split(' ')
+            class_label = elems[0]
+            # need to combine node and split data classes
+            #split_attr = temp_tree.data.
+
+
+# 'ladam5_assign4/data/nursery.train'
+training_file = sys.argv[1]
+test_file = sys.argv[2]
+processed_data = process_training_file(training_file)
 processed_table = processed_data[0]
 processed_unique_vals = processed_data[1]
 processed_class_probs = processed_data[2]
 tree = generate_decision_tree(processed_table, processed_unique_vals, processed_class_probs)
+classify_test_file(tree, test_file)

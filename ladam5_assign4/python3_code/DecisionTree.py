@@ -7,6 +7,9 @@ class Node:
         self.r = None
         self.data = data
         self.class_label = None
+        self.split_attr = None
+        self.left_split_vals = None
+        self.right_split_vals = None
 
 class Split_Data:
     def __init__(self, data, attr, attr_vals_unique, class_probs, val_subset, is_positive):
@@ -141,6 +144,9 @@ def generate_decision_tree(table, attr_list, class_probs):
 
     yes_split = best_split[0]
     no_split = best_split[1]
+    node.split_attr = yes_split.attr
+    node.left_split_vals = yes_split.subset
+    node.right_split_vals = no_split.subset
     
     # combine split data and node classes
     if not yes_split.data:
@@ -203,15 +209,47 @@ def process_training_file(training_file):
 
 
 def classify_test_file(decision_tree, test_file):
+    confusion_matrix = {}
     with open(test_file, 'r') as f:
         for line in f:
             temp_tree = decision_tree
             line = line.strip()       
             elems = line.split(' ')
             class_label = elems[0]
-            # need to combine node and split data classes
-            #split_attr = temp_tree.data.
+            tuple_dict = {}
+            for elem in elems[1:]:
+                kv = elem.split(':')
+                tuple_dict[kv[0]] = kv[1]
+            while not temp_tree.class_label:
+                tuple_val = tuple_dict[temp_tree.split_attr]
+                if tuple_val in temp_tree.left_split_vals:
+                    temp_tree = temp_tree.l
+                    continue
+                elif tuple_val in temp_tree.right_split_vals:
+                    temp_tree = temp_tree.r
+                    continue
+                else:
+                    raise ValueError('Neither child has appropriate values')
+            
+            predicted_class = temp_tree.class_label
+            if class_label not in confusion_matrix:
+                confusion_matrix[class_label] = {}
+            if predicted_class not in confusion_matrix[class_label]:
+                confusion_matrix[class_label][predicted_class] = 1
+            else:
+                confusion_matrix[class_label][predicted_class] = confusion_matrix[class_label][predicted_class] + 1
+    return confusion_matrix
 
+def print_output(confusion_matrix):
+    sorted_class_labels = sorted(confusion_matrix.keys())
+    i = 0
+    for label in sorted_class_labels:
+        if i > 0:
+            print('')
+        sorted_predicted_labels = sorted(confusion_matrix[label].keys())
+        for predicted_label in sorted_predicted_labels:
+            print(confusion_matrix[label][predicted_label], end = ' ')
+        i = i + 1
 
 # 'ladam5_assign4/data/nursery.train'
 training_file = sys.argv[1]
@@ -221,4 +259,5 @@ processed_table = processed_data[0]
 processed_unique_vals = processed_data[1]
 processed_class_probs = processed_data[2]
 tree = generate_decision_tree(processed_table, processed_unique_vals, processed_class_probs)
-classify_test_file(tree, test_file)
+matrix = classify_test_file(tree, test_file)
+print_output(matrix)

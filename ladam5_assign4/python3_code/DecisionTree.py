@@ -251,9 +251,10 @@ def print_output(confusion_matrix):
             print(confusion_matrix[label][predicted_label], end = ' ')
         i = i + 1
 
-# 'ladam5_assign4/data/nursery.train'
-training_file = sys.argv[1]
-test_file = sys.argv[2]
+#training_file = sys.argv[1]
+#test_file = sys.argv[2]
+training_file = 'ladam5_assign4/data/balance.scale.train'
+test_file = 'ladam5_assign4/data/balance.scale.test'
 processed_data = process_training_file(training_file)
 processed_table = processed_data[0]
 processed_unique_vals = processed_data[1]

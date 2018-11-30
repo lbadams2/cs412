@@ -1,5 +1,7 @@
 from itertools import chain, combinations
 import sys
+from random import randint
+from timeit import default_timer as timer
 
 class Node:
     def __init__(self, data):
@@ -229,7 +231,13 @@ def classify_test_file(decision_tree, test_file):
                     temp_tree = temp_tree.r
                     continue
                 else:
-                    raise ValueError('Neither child has appropriate values')
+                    num = randint(0, 1)
+                    if num == 0:
+                        temp_tree = temp_tree.l
+                    elif num == 1:
+                        temp_tree = temp_tree.r
+                    else:
+                        raise ValueError('Neither child has appropriate values')
             
             predicted_class = temp_tree.class_label
             if class_label not in confusion_matrix:
@@ -253,12 +261,15 @@ def print_output(confusion_matrix):
 
 #training_file = sys.argv[1]
 #test_file = sys.argv[2]
-training_file = 'ladam5_assign4/data/balance.scale.train'
-test_file = 'ladam5_assign4/data/balance.scale.test'
+training_file = 'ladam5_assign4/data/synthetic.social.train'
+test_file = 'ladam5_assign4/data/synthetic.social.test'
 processed_data = process_training_file(training_file)
 processed_table = processed_data[0]
 processed_unique_vals = processed_data[1]
 processed_class_probs = processed_data[2]
+start = timer()
 tree = generate_decision_tree(processed_table, processed_unique_vals, processed_class_probs)
+end = timer()
+print(end-start)
 matrix = classify_test_file(tree, test_file)
 print_output(matrix)

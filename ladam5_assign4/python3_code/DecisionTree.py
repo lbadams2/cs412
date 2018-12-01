@@ -246,6 +246,14 @@ def classify_test_file(decision_tree, test_file):
                 confusion_matrix[class_label][predicted_class] = 1
             else:
                 confusion_matrix[class_label][predicted_class] = confusion_matrix[class_label][predicted_class] + 1
+    
+    actual_labels = confusion_matrix.keys()
+    for actual_label in actual_labels:
+        predicted_labels = confusion_matrix[actual_label].keys()
+        diff = actual_labels ^ predicted_labels
+        for missing_label in diff:
+            confusion_matrix[actual_label][missing_label] = 0
+        
     return confusion_matrix
 
 def print_output(confusion_matrix):
@@ -258,11 +266,12 @@ def print_output(confusion_matrix):
         for predicted_label in sorted_predicted_labels:
             print(confusion_matrix[label][predicted_label], end = ' ')
         i = i + 1
+    print('')
 
 #training_file = sys.argv[1]
 #test_file = sys.argv[2]
-training_file = 'ladam5_assign4/data/synthetic.social.train'
-test_file = 'ladam5_assign4/data/synthetic.social.test'
+training_file = '../ladam5_assign4/data/led.train'
+test_file = '../ladam5_assign4/data/led.test'
 processed_data = process_training_file(training_file)
 processed_table = processed_data[0]
 processed_unique_vals = processed_data[1]
@@ -270,6 +279,6 @@ processed_class_probs = processed_data[2]
 start = timer()
 tree = generate_decision_tree(processed_table, processed_unique_vals, processed_class_probs)
 end = timer()
-print(end-start)
+#print(end-start)
 matrix = classify_test_file(tree, test_file)
 print_output(matrix)

@@ -106,7 +106,7 @@ def gini_index_attr_full(attr_val_table, attr_vals_unique):
     for tuple_num, v in attr_val_table.items():
         for attr, val in v.items():
             # don't split on attributes already split on or with only one value
-            if attr not in attr_vals_unique or len(attr_vals_unique[attr]) == 1:
+            if attr not in attr_vals_unique:
                 continue
             if attr not in split_tables:
                 split_tables[attr] = {}
@@ -120,7 +120,7 @@ def gini_index_attr_full(attr_val_table, attr_vals_unique):
                 split_counts[attr][val] = 1
                 split_class_probs[attr] = {}
                 split_class_probs[attr][val] = {}
-                split_class_probs[attr][val][v['class']] = class_counts[attr][val][v['class']] / split_counts[attr][val]
+                split_class_probs[attr][val][v['class']] = 0
                 split_attr_vals_unique[attr] = {}
                 split_attr_vals_unique[attr][val] = {}
             elif val not in split_tables[attr]:
@@ -131,7 +131,7 @@ def gini_index_attr_full(attr_val_table, attr_vals_unique):
                 class_counts[attr][val][v['class']] = 1
                 split_counts[attr][val] = 1
                 split_class_probs[attr][val] = {}
-                split_class_probs[attr][val][v['class']] = class_counts[attr][val][v['class']] / split_counts[attr][val]
+                split_class_probs[attr][val][v['class']] = 0
                 split_attr_vals_unique[attr][val] = {}
             elif tuple_num not in split_tables[attr][val]:
                 split_tables[attr][val][tuple_num] = {}
@@ -141,7 +141,7 @@ def gini_index_attr_full(attr_val_table, attr_vals_unique):
                 else:
                     class_counts[attr][val][v['class']] = class_counts[attr][val][v['class']] + 1
                 split_counts[attr][val] = split_counts[attr][val] + 1
-                split_class_probs[attr][val][v['class']] = class_counts[attr][val][v['class']] / split_counts[attr][val]
+                split_class_probs[attr][val][v['class']] = 0
         
             for other_attr, other_val in v.items():
                 if other_attr == 'class':
@@ -153,6 +153,22 @@ def gini_index_attr_full(attr_val_table, attr_vals_unique):
                     else:
                         if other_val not in split_attr_vals_unique[attr][val][other_attr]:
                             split_attr_vals_unique[attr][val][other_attr].add(other_val)    
+    
+    for class_count_attr, class_count_attr_val_dict in class_counts.items():
+        for class_count_attr_val, class_count_dict in class_count_attr_val_dict.items():
+            for class_label, class_count_num in class_count_dict.items():
+                #class_count = class_counts[class_count_attr][class_count_attr_val][class_label]
+                split_count = split_counts[class_count_attr][class_count_attr_val]
+                split_class_probs[class_count_attr][class_count_attr_val][class_label] = class_count_num / split_count
+
+    '''
+    for class_count_attr in class_counts:
+        for class_count_attr_val in class_count_attr:
+            for class_count_class_val in class_count_attr_val:
+                class_count = class_counts[class_count_attr][class_count_attr_val][class_count_class_val]
+                split_count = split_counts[class_count_attr][class_count_attr_val]
+                split_class_probs[class_count_attr][class_count_attr_val][class_count_class_val] = class_count / split_count
+    '''
 
     # delete unique vals of length 1
     for outer_vals in split_attr_vals_unique.values():

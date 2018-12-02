@@ -20,6 +20,7 @@ class Full_Node:
         self.split_attr = None
         self.val = None
         self.child_vals = set()
+        self.class_label = None
 
 class Split_Data:
     def __init__(self, data, attr, attr_vals_unique, class_probs, val_subset, is_positive):
@@ -264,6 +265,8 @@ def generate_full_decision_tree(table, attr_list, class_probs, val):
             split_val = split_data.subset.pop()
             split_data.subset.add(split_val)
             node.children.append(generate_full_decision_tree(split_data.data, split_data.attr_vals_unique, split_data.class_probs, split_val))
+    
+    return node
 
 
 def generate_binary_decision_tree(table, attr_list, class_probs):
@@ -365,7 +368,7 @@ def classify_test_file_full(decision_tree, test_file):
                 tuple_dict[kv[0]] = kv[1]
             while not temp_tree.class_label:
                 tuple_val = tuple_dict[temp_tree.split_attr]
-                if tuple_val in temp_tree.split_vals:
+                if tuple_val in temp_tree.child_vals:
                     for node in temp_tree.children:
                         if tuple_val == node.val:
                             temp_tree = node
@@ -452,21 +455,20 @@ def print_output(confusion_matrix):
 
 #training_file = sys.argv[1]
 #test_file = sys.argv[2]
-training_file = '../ladam5_assign4/data/balance.scale.train'
-test_file = '../ladam5_assign4/data/balance.scale.test'
+training_file = '../ladam5_assign4/data/nursery.train'
+test_file = '../ladam5_assign4/data/nursery.test'
 processed_data = process_training_file(training_file)
 processed_table = processed_data[0]
 processed_unique_vals = processed_data[1]
 processed_class_probs = processed_data[2]
 matrix = None
 start = timer()
-if 'balance' in training_file or 'synthetic' in training_file:
+if 'balance' in training_file or 'synthetic' in training_file or 'led' in training_file or 'nursery' in training_file:
     tree = generate_full_decision_tree(processed_table, processed_unique_vals, processed_class_probs, None)
     matrix = classify_test_file_full(tree, test_file)
-elif 'led' in training_file or 'nursery' in training_file:
-    tree = generate_binary_decision_tree(processed_table, processed_unique_vals, processed_class_probs)
-    matrix = classify_test_file_binary(tree, test_file)
-tree = generate_binary_decision_tree(processed_table, processed_unique_vals, processed_class_probs)
+#elif 'led' in training_file or 'nursery' in training_file:
+#    tree = generate_binary_decision_tree(processed_table, processed_unique_vals, processed_class_probs)
+#    matrix = classify_test_file_binary(tree, test_file)
 end = timer()
-#print(end-start)
+print(end-start)
 print_output(matrix)

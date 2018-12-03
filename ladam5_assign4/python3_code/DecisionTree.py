@@ -12,6 +12,7 @@ class Node:
         self.split_attr = None
         self.left_split_vals = None
         self.right_split_vals = None
+        self.depth = 0
 
 class Full_Node:
     def __init__(self, data):
@@ -21,6 +22,7 @@ class Full_Node:
         self.val = None
         self.child_vals = set()
         self.class_label = None
+        self.depth = 0
 
 class Split_Data:
     def __init__(self, data, attr, attr_vals_unique, class_probs, val_subset, is_positive):
@@ -95,7 +97,6 @@ def gini_index_attr_full(attr_val_table, attr_vals_unique):
     # maybe optimize to not call len()
     total_count = len(attr_val_table.keys())
     min_attr_gini_index = None
-    no_unique_vals = False
 
     split_tables = {}
     class_counts = {}
@@ -157,18 +158,8 @@ def gini_index_attr_full(attr_val_table, attr_vals_unique):
     for class_count_attr, class_count_attr_val_dict in class_counts.items():
         for class_count_attr_val, class_count_dict in class_count_attr_val_dict.items():
             for class_label, class_count_num in class_count_dict.items():
-                #class_count = class_counts[class_count_attr][class_count_attr_val][class_label]
                 split_count = split_counts[class_count_attr][class_count_attr_val]
                 split_class_probs[class_count_attr][class_count_attr_val][class_label] = class_count_num / split_count
-
-    '''
-    for class_count_attr in class_counts:
-        for class_count_attr_val in class_count_attr:
-            for class_count_class_val in class_count_attr_val:
-                class_count = class_counts[class_count_attr][class_count_attr_val][class_count_class_val]
-                split_count = split_counts[class_count_attr][class_count_attr_val]
-                split_class_probs[class_count_attr][class_count_attr_val][class_count_class_val] = class_count / split_count
-    '''
 
     # delete unique vals of length 1
     for outer_vals in split_attr_vals_unique.values():
@@ -253,9 +244,12 @@ def gini_index_attr(attr_val_table, attr_vals_unique):
     
     return best_split, no_unique_vals
 
-def generate_full_decision_tree(table, attr_list, class_probs, val):
+def generate_full_decision_tree(table, attr_list, class_probs, val, depth):
     node = Full_Node(table)
     node.val = val
+    node.depth = depth
+    print('node depth: ' + str(depth))
+    next_depth = depth + 1
     if len(class_probs.keys()) == 1:
         node.class_label = list(class_probs.keys())[0]
         return node
@@ -266,9 +260,14 @@ def generate_full_decision_tree(table, attr_list, class_probs, val):
         node.class_label = majority_class
         return node
 
+    #if depth > 10:
+    #    node.class_label = majority_class
+    #    return node
+
     split_data_list = gini_index_attr_full(table, attr_list)
     split_attr = split_data_list[0].attr
     node.split_attr = split_attr
+    
     for split_data in split_data_list:
         node.child_vals.update(split_data.subset)
         if not split_data.data:
@@ -276,17 +275,21 @@ def generate_full_decision_tree(table, attr_list, class_probs, val):
             leaf_node.class_label = majority_class
             leaf_node.split_attr = split_data.attr
             leaf_node.val = split_data.subset
+            leaf_node.depth = next_depth
             node.children.append(leaf_node)
         else:
             split_val = split_data.subset.pop()
             split_data.subset.add(split_val)
-            node.children.append(generate_full_decision_tree(split_data.data, split_data.attr_vals_unique, split_data.class_probs, split_val))
+            node.children.append(generate_full_decision_tree(split_data.data, split_data.attr_vals_unique, split_data.class_probs, split_val, next_depth))
     
     return node
 
 
-def generate_binary_decision_tree(table, attr_list, class_probs):
+def generate_binary_decision_tree(table, attr_list, class_probs, depth):
     node = Node(table)
+    node.depth = depth
+    print('node depth: ' + str(depth))
+    next_depth = depth + 1
     if len(class_probs.keys()) == 1:
         node.class_label = list(class_probs.keys())[0]
         return node
@@ -296,6 +299,12 @@ def generate_binary_decision_tree(table, attr_list, class_probs):
     if not attr_list:        
         node.class_label = majority_class
         return node    
+
+    # 6 is 166 seconds accuracy .48
+    # 4 is 122 seconds accuracy .46
+    if depth > 3:
+        node.class_label = majority_class
+        return node
 
     gini_results = gini_index_attr(table, attr_list)
     best_split = gini_results[0]
@@ -314,16 +323,18 @@ def generate_binary_decision_tree(table, attr_list, class_probs):
     if not yes_split.data:
         leaf_node = Node(None)
         leaf_node.class_label = majority_class
+        leaf_node.depth = next_depth
         node.l = leaf_node
     else:
-        node.l = generate_binary_decision_tree(yes_split.data, yes_split.attr_vals_unique, yes_split.class_probs)
+        node.l = generate_binary_decision_tree(yes_split.data, yes_split.attr_vals_unique, yes_split.class_probs, next_depth)
 
     if not no_split.data:
         leaf_node = Node(None)
         leaf_node.class_label = majority_class
+        leaf_node.depth = next_depth
         node.r = leaf_node
     else:
-        node.r = generate_binary_decision_tree(no_split.data, no_split.attr_vals_unique, no_split.class_probs)
+        node.r = generate_binary_decision_tree(no_split.data, no_split.attr_vals_unique, no_split.class_probs,next_depth)
 
     return node
 
@@ -413,8 +424,11 @@ def classify_test_file_full(decision_tree, test_file):
 
 def classify_test_file_binary(decision_tree, test_file):
     confusion_matrix = {}
+    num_lines = 0
+    correct_predictions = 0
     with open(test_file, 'r') as f:
         for line in f:
+            num_lines = num_lines + 1
             temp_tree = decision_tree
             line = line.strip()       
             elems = line.split(' ')
@@ -441,6 +455,8 @@ def classify_test_file_binary(decision_tree, test_file):
                         raise ValueError('Neither child has appropriate values')
             
             predicted_class = temp_tree.class_label
+            if predicted_class == class_label:
+                correct_predictions = correct_predictions + 1
             if class_label not in confusion_matrix:
                 confusion_matrix[class_label] = {}
             if predicted_class not in confusion_matrix[class_label]:
@@ -454,7 +470,8 @@ def classify_test_file_binary(decision_tree, test_file):
         diff = actual_labels ^ predicted_labels
         for missing_label in diff:
             confusion_matrix[actual_label][missing_label] = 0
-        
+    
+    print('Accuracy: ' + str(correct_predictions/num_lines))
     return confusion_matrix
 
 def print_output(confusion_matrix):
@@ -471,20 +488,22 @@ def print_output(confusion_matrix):
 
 #training_file = sys.argv[1]
 #test_file = sys.argv[2]
-training_file = '../ladam5_assign4/data/nursery.train'
-test_file = '../ladam5_assign4/data/nursery.test'
+training_file = '../ladam5_assign4/data/synthetic.social.train'
+test_file = '../ladam5_assign4/data/synthetic.social.test'
 processed_data = process_training_file(training_file)
 processed_table = processed_data[0]
 processed_unique_vals = processed_data[1]
 processed_class_probs = processed_data[2]
 matrix = None
 start = timer()
+'''
 if 'balance' in training_file or 'synthetic' in training_file or 'led' in training_file or 'nursery' in training_file:
-    tree = generate_full_decision_tree(processed_table, processed_unique_vals, processed_class_probs, None)
+    tree = generate_full_decision_tree(processed_table, processed_unique_vals, processed_class_probs, None, 0)
     matrix = classify_test_file_full(tree, test_file)
-#elif 'led' in training_file or 'nursery' in training_file:
-#    tree = generate_binary_decision_tree(processed_table, processed_unique_vals, processed_class_probs)
-#    matrix = classify_test_file_binary(tree, test_file)
+'''
+if 'balance' in training_file or 'synthetic' in training_file or 'led' in training_file or 'nursery' in training_file:
+    tree = generate_binary_decision_tree(processed_table, processed_unique_vals, processed_class_probs, 0)
+    matrix = classify_test_file_binary(tree, test_file)
 end = timer()
-print(end-start)
+print('Runtime: ' + str(end-start))
 print_output(matrix)

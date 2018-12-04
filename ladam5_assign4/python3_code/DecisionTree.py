@@ -302,7 +302,7 @@ def generate_binary_decision_tree(table, attr_list, class_probs, depth):
 
     # 6 is 166 seconds accuracy .48
     # 4 is 122 seconds accuracy .46
-    if depth > 3:
+    if depth > 4:
         node.class_label = majority_class
         return node
 

@@ -1,0 +1,68 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{mathtools}
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+\title{CS412 HW5}
+\author{Liam Adams }
+\date{December 11 2018}
+
+\begin{document}
+
+\maketitle
+
+\section{Question 1}
+
+
+c) An ensemble method for a Naive Bayes classifier can be designed using Random Forest.  For a training set D of n tuples, sample D k times with replacement 
+each with sample size of n.  For each sample $$k_i$$ create a decision tree by doing a full split on the attribute with the maximum information gain.
+At each node in each tree, store the conditional probability for the attribute-value given each class.  As you descend the tree to classify a test tuple t, remember the path taken
+and when you reach a leaf node calculate the product of the conditional probabilities for each close and choose the class with the largest probability.
+Classify t in this way for each of the k decision trees.  Each decision tree's classification is a vote, and the majority class is chosen as the class for t.\\\\
+d) Sensitivity and specificity can be used to effectively evaluate the clasification of data with rare positive examples.  Sensitivity is the proportion
+of positive tuples that are correctly identified.  Sensitivity = $$TP/P$$ where TP is the number of positive tuples that were correctly labeled by the classifier
+ and P is the total number of positive tuples.  Specificity = $$TN/N$$ where TN is the number of negative tuples that were correctly labeld by the classifier
+  and N is the total number of negative tuples. Sensitivity is the classifier's ability to correctly label the positive class.
+Precision can also be used which is $$TP/TP + FP$$ where FP is the number of negative tuples incorrectly labled as positive.  A classifier with a high
+sensitivity and precision is ideal for data with rare positives.\\\\
+
+
+\section{Question 2}
+a) (2.7, 2.7) is closest to (2.3, 3) by Euclidean distance $$\sqrt{(2.7-2.3)^2 + (2.7-3)^2}$$ so it is classified as -1.\\\\
+(2.5, 1) is closest to (2, 1.2) by Euclidean distance $$\sqrt{(2.5-2)^2 + (1-1.2)^2}$$ so it is classified as 1.\\\\
+(1.5, 2.5) is closest to (1.5, 2) by Euclidean distance $$\sqrt{(1.5-1.5)^2 + (2.5-2)^2}$$ so it is classified as -1\\\\
+(1.2, 1) is closest to (.8, 1) by Euclidean distance $$\sqrt{(1.2-.8)^2 + (1-1)^2}$$ so it is classified as -1\\\\
+The testing error is .25 because 1 out of 4 test tuples were classified incorrectly\\\\
+b) (2.7, 2.7) is closest to (2.3, 3) and (2.5, 2) by Euclidean distance using $$\sqrt{\sum\limits_{i=1}^{n}{(x_{1i}-x_{2i})^2}}$$ for each training 
+point.  It may be classified as either 1 or -1 since its 2 nearest neighbors are 1 and -1 respectively.\\\\
+(2.5, 1) is closest to (2, 1.2) and either (2.5, 2) or (3, 2) by Euclidean distance.  Randomly choosing either (2.5, 2) or (3, 2) for the second
+nearest number would both classify (2.5, 1) as 1.  So the consensus classification is 1.\\\\
+(1.5, 2.5) is closest to (1.5, 2) and (1.2, 1.9) by Euclidean distance, which are both classified as -1, so (1.5, 2.5) is -1.\\\\
+(1.2, 1) is closest to (.8, 1) and (1, .5) by Euclidean distance.  It may be classified as either 1 or -1 
+since its 2 nearest neighbors are -1 and 1 respectively.\\\\
+There are 3 possible testing errors depending on the outcome of randomly choosing a label for (2.7, 2.7) and (1.2, 1).  The possible testing
+errors are 0, .5, and .25\\\\
+c) a=1, b=-1, c=0.  I chose these values because they are 100\% accurate on the training data, x1 is always greater than x2 when the tuple is classified
+ as 1, and x2 is always greater than x1 when the tuple is classified as -1 in the training data. Therefore the training error is 0.  The testing error
+is .25.\\\\
+d)  SVM here works well because the training data is linearly separable.  KNN works well with one neighbor but not well with 2 neighbors because tuples from
+the different classes are sometimes closer to one another than they are to members of their own class.  It appears that if the data are linearly separable
+a linear classification method will work well.  If the line between the classes is irregular and non linear, and the data points are clustered
+closer to members of their own class than to members of other classes, than KNN will work well.\\\\
+
+
+\section{Question 3}
+a) One cluster is {(1,2), (3,2), (1,3), (2,1), (2,3), (2,2)} and another cluster is {(6,4), (5,4), (5,5), (4,5), (4,3), (6,5), (5,3)}.  See 
+Problem3a.ladam5.py\\\\
+b) With MinPts=2 and \epsilon = 1.5 every object is a core object.  Therefore every object is density reachable to every other object.  A cluster C in 
+DBSCAN means that any two objects o1 and o2 from C are density connected and there exists no 2 objects o \epsilon C and o' \epsilon C' such that 
+o and o' are density connected.  Since any 2 objects o1 and o2 in this data set are density reachable to one another, they are also all density connected 
+because there is always a third object o3 that o1 and o2 are density reachable from.  Therefore there is only one cluster.\\\\
+c) Initially every object is in a cluster of its own.  I'll use min_distance=1 for merging.  With single linkage, 2 clusters C1 and C2 are merged
+ if any object from C1 meets the min_distance with another object from C2.  Starting from the cluster (2,2) I can merge the clusters (2,3), (3,2), 
+ (2,1), and (1,2) because they are all 1 unit away.  Now I have the cluster {(2,3), (3,2), (2,1),(1,2)}.  (1,3) can be merged in because it is 1 unit 
+ away from (1,2), but no other objects are one unit away from any object in the cluster.  Now I have {(2,3), (3,2), (2,1), (1,2), (1,3)}.  Next I 
+ choose a point not in the first cluster, (5,4).  (5,3), (6,4), (6,5), and (5,5) can all be merged in to form {(5,4),(5,3), (6,4), (6,5), (5,5)}. (4,3) 
+ can be merged into the second cluster because it is one unit away from (5,3) and (4,5) can be merged in because it is one unit away from (5,5). 
+ Now I have the two clusters {(1,2), (3,2), (1,3), (2,1), (2,3), (2,2)} and {(6,4), (5,4), (5,5), (4,5), (4,3), (6,5), (5,3)}.  I'm finished because 
+ every object is in a cluster and no 2 objects from different clusters are within the minimum distance of one another.

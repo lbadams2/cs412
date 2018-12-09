@@ -2,7 +2,6 @@
 \usepackage[utf8]{inputenc}
 \usepackage{amsmath}
 \usepackage{mathtools}
-\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
 \title{CS412 HW5}
 \author{Liam Adams }
 \date{December 11 2018}
@@ -12,8 +11,16 @@
 \maketitle
 
 \section{Question 1}
-
-
+a)\\
+  i) $\frac{7}{10} = .7$\\
+  ii) $\frac{3}{10} = .3$\\\\
+  iii) X = (Price = '\$', Delivery = 'Yes', Cuisine = 'Korean')\\
+       $P(X | Popularity = P) = P(X_1 = \$ | Popularity = P) * P(X_2 = Yes | Popularity = P) * P(X_3 = Korean | Popularity = P) = 
+       \frac{3}{7} * \frac{5}{7} * \frac{2}{7} = .0875$\\\\
+  iv) X = (Price = '\$', Delivery = 'Yes', Cuisine = 'Korean')\\
+  $P(X | Popularity = NP) = P(X_1 = \$ | Popularity = NP) * P(X_2 = Yes | Popularity = NP) * P(X_3 = Korean | Popularity = NP) = 
+  \frac{1}{3} * \frac{1}{3} * \frac{1}{3} = .037$\\\\
+b) From the previous calculations, P(X | Popularity = 'P') > P(X | Popularity = 'NP') so the restaurant is classified as Popular.
 c) An ensemble method for a Naive Bayes classifier can be designed using Random Forest.  For a training set D of n tuples, sample D k times with replacement 
 each with sample size of n.  For each sample $$k_i$$ create a decision tree by doing a full split on the attribute with the maximum information gain.
 At each node in each tree, store the conditional probability for the attribute-value given each class.  As you descend the tree to classify a test tuple t, remember the path taken
@@ -25,7 +32,6 @@ of positive tuples that are correctly identified.  Sensitivity = $$TP/P$$ where 
   and N is the total number of negative tuples. Sensitivity is the classifier's ability to correctly label the positive class.
 Precision can also be used which is $$TP/TP + FP$$ where FP is the number of negative tuples incorrectly labled as positive.  A classifier with a high
 sensitivity and precision is ideal for data with rare positives.\\\\
-
 
 \section{Question 2}
 a) (2.7, 2.7) is closest to (2.3, 3) by Euclidean distance $$\sqrt{(2.7-2.3)^2 + (2.7-3)^2}$$ so it is classified as -1.\\\\
@@ -50,19 +56,19 @@ the different classes are sometimes closer to one another than they are to membe
 a linear classification method will work well.  If the line between the classes is irregular and non linear, and the data points are clustered
 closer to members of their own class than to members of other classes, than KNN will work well.\\\\
 
-
 \section{Question 3}
 a) One cluster is {(1,2), (3,2), (1,3), (2,1), (2,3), (2,2)} and another cluster is {(6,4), (5,4), (5,5), (4,5), (4,3), (6,5), (5,3)}.  See 
 Problem3a.ladam5.py\\\\
-b) With MinPts=2 and \epsilon = 1.5 every object is a core object.  Therefore every object is density reachable to every other object.  A cluster C in 
-DBSCAN means that any two objects o1 and o2 from C are density connected and there exists no 2 objects o \epsilon C and o' \epsilon C' such that 
+b) With MinPts=2 and $\epsilon$ = 1.5 every object is a core object.  Therefore every object is density reachable to every other object.  A cluster C in 
+DBSCAN means that any two objects o1 and o2 from C are density connected and there exists no 2 objects o $\epsilon$ C and o' $\epsilon$ C' such that 
 o and o' are density connected.  Since any 2 objects o1 and o2 in this data set are density reachable to one another, they are also all density connected 
 because there is always a third object o3 that o1 and o2 are density reachable from.  Therefore there is only one cluster.\\\\
-c) Initially every object is in a cluster of its own.  I'll use min_distance=1 for merging.  With single linkage, 2 clusters C1 and C2 are merged
- if any object from C1 meets the min_distance with another object from C2.  Starting from the cluster (2,2) I can merge the clusters (2,3), (3,2), 
+c) Initially every object is in a cluster of its own.  I'll use min\_distance=1 for merging.  With single linkage, 2 clusters C1 and C2 are merged
+ if any object from C1 meets the min\_distance with another object from C2.  Starting from the cluster (2,2) I can merge the clusters (2,3), (3,2), 
  (2,1), and (1,2) because they are all 1 unit away.  Now I have the cluster {(2,3), (3,2), (2,1),(1,2)}.  (1,3) can be merged in because it is 1 unit 
  away from (1,2), but no other objects are one unit away from any object in the cluster.  Now I have {(2,3), (3,2), (2,1), (1,2), (1,3)}.  Next I 
  choose a point not in the first cluster, (5,4).  (5,3), (6,4), (6,5), and (5,5) can all be merged in to form {(5,4),(5,3), (6,4), (6,5), (5,5)}. (4,3) 
  can be merged into the second cluster because it is one unit away from (5,3) and (4,5) can be merged in because it is one unit away from (5,5). 
  Now I have the two clusters {(1,2), (3,2), (1,3), (2,1), (2,3), (2,2)} and {(6,4), (5,4), (5,5), (4,5), (4,3), (6,5), (5,3)}.  I'm finished because 
  every object is in a cluster and no 2 objects from different clusters are within the minimum distance of one another.
+ \end{document}

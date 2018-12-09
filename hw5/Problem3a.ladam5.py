@@ -36,7 +36,7 @@ def set_clusters(first_cluster, second_cluster, first_center, second_center):
                 second_cluster.add(point)
 
 data = []
-with open('/Users/liamadams/Documents/school/CS412/hw5/data.txt', 'r') as f:
+with open('data.txt', 'r') as f:
     for line in f:
         line = line.strip()
         vals = line.split(' ')

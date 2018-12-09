@@ -1,0 +1,236 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{caption}
+\usepackage{amsmath}
+\usepackage{mathtools}
+\usepackage{float}
+
+\title{HW4}
+\author{Liam Adams}
+\date{December 11 2018}
+
+\begin{document}
+
+\maketitle
+
+\section*{Test Accuracy}
+\begin{table}[htbp]
+\caption{Test Accuracy}
+\begin{tabular}{ |c|c|c| }
+ \hline
+   & Decision Tree & Random Forest\\
+ balance.scale.test & .724 & .773 \\
+ led.test & .859 & .862 \\
+ nursery.test & .968 & .985 \\
+ synthetic.social.test & .464 & .527 \\
+ \hline
+\end{tabular}
+\end{table}
+\section*{Classification Methods}
+For Decision Tree I implemented both full split and binary split, with Gini Index as the attribute selection method.  I went with binary split in order to meet the accuracy threshold for synthetic social.  I also limited the depth of the tree to 5 for synthetic social in order to meet the 3 minute runtime requirement.  I did not limit the depth of the trees for the other 3 training sets.\\
+For Random Forest I created 31 binary trees for each of the balance, led and nursery training sets.  For balance I created the trees by randomly selecting 2 attributes as candidates to split for each node, for led 3 attributes, and for nursery 4 attributes.  I used Gini Index to choose the attribute to split on at each node.  I did not limit the depth of the trees for these 3 training sets.  For synthetic social I created 7 binary trees, randomly selecting 20 attributes as split candidates at each node.  The best attribute to split was selected using Gini Index.  I limited the depth of the trees to 6 for synthetic social.
+\section*{Decision Tree Test F1 Scores}
+Below are the F1 scores for each class of each test set for Decision Tree using $$F1 = \frac{2TP}{2TP + FP + FN}$$
+\begin{table}[htbp]
+\caption{Decision Tree Balance Test F1 Scores}
+\begin{tabular}{ |c|c| }
+ \hline
+ Class Label & Score\\
+ 1 & 0\\
+ 2 & .832\\
+ 3 & .763\\
+ \hline
+\end{tabular}
+\end{table}
+\begin{table}[htbp]
+\caption{Decision Tree Led Test F1 Scores}
+\begin{tabular}{ |c|c| }
+ \hline
+ Class Label & Score\\
+ 1 & .773\\
+ 2 & .898\\
+ \hline
+\end{tabular}
+\end{table}
+\begin{table}[htbp]
+\caption{Decision Tree Nursery Test F1 Scores}
+\begin{tabular}{ |c|c| }
+ \hline
+ Class Label & Score\\
+ 1 & .950\\
+ 2 & .861\\
+ 3 & .960\\
+ 4 & 1\\
+ \hline
+\end{tabular}
+\end{table}
+\begin{table}[htbp]
+\caption{Decision Tree Synthetic Test F1 Scores}
+\begin{tabular}{ |c|c| }
+ \hline
+ Class Label & Score\\
+ 1 & .504\\
+ 2 & .409\\
+ 3 & .449\\
+ 4 & .465\\
+ \hline
+\end{tabular}
+\end{table}
+\section*{Random Forest Test F1 Scores}
+Below are the F1 scores for each class of each test set for Random Forest using $$F1 = \frac{2TP}{2TP + FP + FN}$$
+\begin{table}[htbp]
+\caption{Random Forest Balance Test F1 Scores}
+\begin{tabular}{ |c|c| }
+ \hline
+ Class Label & Score\\
+ 1 & 0\\
+ 2 & .821\\
+ 3 & .816\\
+ \hline
+\end{tabular}
+\end{table}
+\begin{table}[htbp]
+\caption{Random Forest Led Test F1 Scores}
+\begin{tabular}{ |c|c| }
+ \hline
+ Class Label & Score\\
+ 1 & .773\\
+ 2 & .9\\
+ \hline
+\end{tabular}
+\end{table}
+\begin{table}[htbp]
+\caption{Random Forest Nursery Test F1 Scores}
+\begin{tabular}{ |c|c| }
+ \hline
+ Class Label & Score\\
+ 1 & .972\\
+ 2 & .96\\
+ 3 & .975\\
+ 4 & 1\\
+ \hline
+\end{tabular}
+\end{table}
+\begin{table}[H]
+\caption{Random Forest Synthetic Test F1 Scores}
+\begin{tabular}{ |c|c| }
+ \hline
+ Class Label & Score\\
+ 1 & .586\\
+ 2 & .423\\
+ 3 & .518\\
+ 4 & .528\\
+ \hline
+\end{tabular}
+\end{table}
+\newpage
+\section*{Training Accuracy}
+\begin{table}[htbp]
+\caption{Training Accuracy}
+\begin{tabular}{ |c|c|c| }
+ \hline
+   & Decision Tree & Random Forest\\
+ balance.scale.train & 1 & 1 \\
+ led.train & .86 & .858 \\
+ nursery.train & 1 & 1 \\
+ synthetic.social.train & .503 & .606 \\
+ \hline
+\end{tabular}
+\end{table}
+\section*{Decision Tree Training F1 Scores}
+Below are the F1 scores for each class of each training set for Decision Tree using $$F1 = \frac{2TP}{2TP + FP + FN}$$
+\begin{table}[htbp]
+\caption{Decision Tree Balance Training F1 Scores}
+\begin{tabular}{ |c|c| }
+ \hline
+ Class Label & Score\\
+ 1 & 1\\
+ 2 & 1\\
+ 3 & 1\\
+ \hline
+\end{tabular}
+\end{table}
+\begin{table}[htbp]
+\caption{Decision Tree Led Training F1 Scores}
+\begin{tabular}{ |c|c| }
+ \hline
+ Class Label & Score\\
+ 1 & .770\\
+ 2 & .90\\
+ \hline
+\end{tabular}
+\end{table}
+\begin{table}[H]
+\caption{Decision Tree Nursery Training F1 Scores}
+\begin{tabular}{ |c|c| }
+ \hline
+ Class Label & Score\\
+ 1 & 1\\
+ 2 & 1\\
+ 3 & 1\\
+ 4 & 1\\
+ 5 & 1\\
+ \hline
+\end{tabular}
+\end{table}
+\begin{table}[H]
+\caption{Decision Tree Synthetic Training F1 Scores}
+\begin{tabular}{ |c|c| }
+ \hline
+ Class Label & Score\\
+ 1 & .492\\
+ 2 & .461\\
+ 3 & .509\\
+ 4 & .554\\
+ \hline
+\end{tabular}
+\end{table}
+\section*{Random Forest Training F1 Scores}
+Below are the F1 scores for each class of each training set for Random Forest using $$F1 = \frac{2TP}{2TP + FP + FN}$$
+\begin{table}[htbp]
+\caption{Random Forest Balance Training F1 Scores}
+\begin{tabular}{ |c|c| }
+ \hline
+ Class Label & Score\\
+ 1 & 1\\
+ 2 & 1\\
+ 3 & 1\\
+ \hline
+\end{tabular}
+\end{table}
+\begin{table}[htbp]
+\caption{Random Forest Led Training F1 Scores}
+\begin{tabular}{ |c|c| }
+ \hline
+ Class Label & Score\\
+ 1 & .767\\
+ 2 & .9\\
+ \hline
+\end{tabular}
+\end{table}
+\begin{table}[htbp]
+\caption{Random Forest Nursery Training F1 Scores}
+\begin{tabular}{ |c|c| }
+ \hline
+ Class Label & Score\\
+ 1 & 1\\
+ 2 & 1\\
+ 3 & 1\\
+ 4 & 1\\
+ 5 & 1\\
+ \hline
+\end{tabular}
+\end{table}
+\begin{table}[H]
+\caption{Random Forest Synthetic Training F1 Scores}
+\begin{tabular}{ |c|c| }
+ \hline
+ Class Label & Score\\
+ 1 & .616\\
+ 2 & .585\\
+ 3 & .654\\
+ 4 & .658\\
+ \hline
+\end{tabular}
+\end{table}
+\end{document}

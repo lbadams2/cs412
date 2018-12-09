@@ -105,7 +105,7 @@ def gini_index_attr_full(attr_val_table, attr_vals_unique):
     split_attr_vals_unique = {}
 
     for tuple_num, v in attr_val_table.items():
-        for attr, val in v.items():
+        for attr, val in v.items():            
             # don't split on attributes already split on or with only one value
             if attr not in attr_vals_unique:
                 continue
@@ -113,6 +113,8 @@ def gini_index_attr_full(attr_val_table, attr_vals_unique):
                 split_tables[attr] = {}
                 split_tables[attr][val] = {}
                 split_tables[attr][val][tuple_num] = {}
+                #new_v = v.copy()
+                #del new_v[attr]
                 split_tables[attr][val][tuple_num] = v
                 class_counts[attr] = {}
                 class_counts[attr][val] = {}
@@ -127,6 +129,8 @@ def gini_index_attr_full(attr_val_table, attr_vals_unique):
             elif val not in split_tables[attr]:
                 split_tables[attr][val] = {}
                 split_tables[attr][val][tuple_num] = {}
+                #new_v = v.copy()
+                #del new_v[attr] 
                 split_tables[attr][val][tuple_num] = v
                 class_counts[attr][val] = {}
                 class_counts[attr][val][v['class']] = 1
@@ -136,6 +140,8 @@ def gini_index_attr_full(attr_val_table, attr_vals_unique):
                 split_attr_vals_unique[attr][val] = {}
             elif tuple_num not in split_tables[attr][val]:
                 split_tables[attr][val][tuple_num] = {}
+                #new_v = v.copy()
+                #del new_v[attr]
                 split_tables[attr][val][tuple_num] = v
                 if v['class'] not in class_counts[attr][val]:
                     class_counts[attr][val][v['class']] = 1
@@ -143,7 +149,25 @@ def gini_index_attr_full(attr_val_table, attr_vals_unique):
                     class_counts[attr][val][v['class']] = class_counts[attr][val][v['class']] + 1
                 split_counts[attr][val] = split_counts[attr][val] + 1
                 split_class_probs[attr][val][v['class']] = 0
-        
+
+        # update unique attr vals
+        for unique_attr in split_attr_vals_unique:
+            unique_val_dict = split_attr_vals_unique[unique_attr]
+            for unique_val in unique_val_dict: 
+                if unique_attr in v and v[unique_attr] == unique_val:
+                    for other_attr, other_val in v.items():
+                        if other_attr not in attr_vals_unique:
+                            continue
+                        if other_attr != attr:
+                            if other_attr not in split_attr_vals_unique[unique_attr][unique_val]:
+                                split_attr_vals_unique[unique_attr][unique_val][other_attr] = set()
+                                split_attr_vals_unique[unique_attr][unique_val][other_attr].add(other_val)
+                            else:
+                                if other_val not in split_attr_vals_unique[unique_attr][unique_val][other_attr]:
+                                    split_attr_vals_unique[unique_attr][unique_val][other_attr].add(other_val)
+
+
+            '''
             for other_attr, other_val in v.items():
                 if other_attr == 'class':
                     continue
@@ -153,8 +177,9 @@ def gini_index_attr_full(attr_val_table, attr_vals_unique):
                         split_attr_vals_unique[attr][val][other_attr].add(other_val)
                     else:
                         if other_val not in split_attr_vals_unique[attr][val][other_attr]:
-                            split_attr_vals_unique[attr][val][other_attr].add(other_val)    
-    
+                            split_attr_vals_unique[attr][val][other_attr].add(other_val)
+            '''        
+
     for class_count_attr, class_count_attr_val_dict in class_counts.items():
         for class_count_attr_val, class_count_dict in class_count_attr_val_dict.items():
             for class_label, class_count_num in class_count_dict.items():
@@ -248,7 +273,7 @@ def generate_full_decision_tree(table, attr_list, class_probs, val, depth):
     node = Full_Node(table)
     node.val = val
     node.depth = depth
-    print('node depth: ' + str(depth))
+    #print('node depth: ' + str(depth))
     next_depth = depth + 1
     if len(class_probs.keys()) == 1:
         node.class_label = list(class_probs.keys())[0]
@@ -260,11 +285,16 @@ def generate_full_decision_tree(table, attr_list, class_probs, val, depth):
         node.class_label = majority_class
         return node
 
-    #if depth > 10:
+    #if depth > 7:
     #    node.class_label = majority_class
     #    return node
 
+    start = timer()
     split_data_list = gini_index_attr_full(table, attr_list)
+    end = timer()
+    runtime = end-start
+    if runtime > .49:
+        print('Attribute selction time depth ' + str(depth) + ' ' + str(runtime))
     split_attr = split_data_list[0].attr
     node.split_attr = split_attr
     
@@ -288,7 +318,7 @@ def generate_full_decision_tree(table, attr_list, class_probs, val, depth):
 def generate_binary_decision_tree(table, attr_list, class_probs, depth):
     node = Node(table)
     node.depth = depth
-    print('node depth: ' + str(depth))
+    #print('node depth: ' + str(depth))
     next_depth = depth + 1
     if len(class_probs.keys()) == 1:
         node.class_label = list(class_probs.keys())[0]
@@ -302,7 +332,7 @@ def generate_binary_decision_tree(table, attr_list, class_probs, depth):
 
     # 6 is 166 seconds accuracy .48
     # 4 is 122 seconds accuracy .46
-    if depth > 4:
+    if depth > 4 and 'synthetic' in training_file:
         node.class_label = majority_class
         return node
 
@@ -383,8 +413,11 @@ def process_training_file(training_file):
 
 def classify_test_file_full(decision_tree, test_file):
     confusion_matrix = {}
+    num_lines = 0
+    correct_predictions = 0
     with open(test_file, 'r') as f:
         for line in f:
+            num_lines = num_lines + 1
             temp_tree = decision_tree
             line = line.strip()       
             elems = line.split(' ')
@@ -405,6 +438,8 @@ def classify_test_file_full(decision_tree, test_file):
                     temp_tree = temp_tree.children[num]
             
             predicted_class = temp_tree.class_label
+            if predicted_class == class_label:
+                correct_predictions = correct_predictions + 1
             if class_label not in confusion_matrix:
                 confusion_matrix[class_label] = {}
             if predicted_class not in confusion_matrix[class_label]:
@@ -419,6 +454,7 @@ def classify_test_file_full(decision_tree, test_file):
         for missing_label in diff:
             confusion_matrix[actual_label][missing_label] = 0
         
+    print('Accuracy: ' + str(correct_predictions/num_lines))
     return confusion_matrix
     
 
@@ -471,7 +507,7 @@ def classify_test_file_binary(decision_tree, test_file):
         for missing_label in diff:
             confusion_matrix[actual_label][missing_label] = 0
     
-    print('Accuracy: ' + str(correct_predictions/num_lines))
+    #print('Accuracy: ' + str(correct_predictions/num_lines))
     return confusion_matrix
 
 def print_output(confusion_matrix):
@@ -486,10 +522,10 @@ def print_output(confusion_matrix):
         i = i + 1
     print('')
 
-#training_file = sys.argv[1]
-#test_file = sys.argv[2]
-training_file = '../ladam5_assign4/data/synthetic.social.train'
-test_file = '../ladam5_assign4/data/synthetic.social.test'
+training_file = sys.argv[1]
+test_file = sys.argv[2]
+#training_file = '../ladam5_assign4/data/balance.scale.train'
+#test_file = '../ladam5_assign4/data/balance.scale.test'
 processed_data = process_training_file(training_file)
 processed_table = processed_data[0]
 processed_unique_vals = processed_data[1]
@@ -497,7 +533,7 @@ processed_class_probs = processed_data[2]
 matrix = None
 start = timer()
 '''
-if 'balance' in training_file or 'synthetic' in training_file or 'led' in training_file or 'nursery' in training_file:
+if 'balance' in training_file or 'synthetic' in training_file or 'led' in training_file or 'nursery' in training_file or 'toy' in training_file:
     tree = generate_full_decision_tree(processed_table, processed_unique_vals, processed_class_probs, None, 0)
     matrix = classify_test_file_full(tree, test_file)
 '''
@@ -505,5 +541,5 @@ if 'balance' in training_file or 'synthetic' in training_file or 'led' in traini
     tree = generate_binary_decision_tree(processed_table, processed_unique_vals, processed_class_probs, 0)
     matrix = classify_test_file_binary(tree, test_file)
 end = timer()
-print('Runtime: ' + str(end-start))
+#print('Runtime: ' + str(end-start))
 print_output(matrix)

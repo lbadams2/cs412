@@ -96,7 +96,7 @@ def gini_index_attr(attr_val_table, attr_vals_unique):
     num_attributes = 0
 
     if 'synthetic' in training_file:
-        num_attributes = 40
+        num_attributes = 20
     elif 'led' in training_file:
         num_attributes = 3
     elif 'nursery' in training_file:
@@ -155,7 +155,7 @@ def gini_index_attr(attr_val_table, attr_vals_unique):
 def generate_binary_decision_tree(table, attr_list, class_probs, depth):
     node = Node(table)
     node.depth = depth
-    print('node depth: ' + str(depth))
+    #print('node depth: ' + str(depth))
     next_depth = depth + 1
     if len(class_probs.keys()) == 1:
         node.class_label = list(class_probs.keys())[0]
@@ -169,9 +169,9 @@ def generate_binary_decision_tree(table, attr_list, class_probs, depth):
 
     # 6 is 166 seconds accuracy .48
     # 4 is 122 seconds accuracy .46
-    #if depth > 4 and 'synthetic' in training_file:
-    #    node.class_label = majority_class
-    #    return node
+    if depth > 5 and 'synthetic' in training_file:
+        node.class_label = majority_class
+        return node
 
     gini_results = gini_index_attr(table, attr_list)
     best_split = gini_results[0]
@@ -300,7 +300,7 @@ def classify_test_file_binary(decision_trees, test_file):
         for missing_label in diff:
             confusion_matrix[actual_label][missing_label] = 0
     
-    print('Accuracy: ' + str(correct_predictions/num_lines))
+    #print('Accuracy: ' + str(correct_predictions/num_lines))
     return confusion_matrix
 
 def print_output(confusion_matrix):
@@ -356,21 +356,21 @@ def get_sample_table_data(data_set_dict):
     return sample_table, attr_vals_unique, total_class_probs
 
 start = timer()
-#training_file = sys.argv[1]
-#test_file = sys.argv[2]
-training_file = '../ladam5_assign4/data/synthetic.social.train'
-test_file = '../ladam5_assign4/data/synthetic.social.test'
+training_file = sys.argv[1]
+test_file = sys.argv[2]
+#training_file = '../ladam5_assign4/data/synthetic.social.train'
+#test_file = '../ladam5_assign4/data/synthetic.social.test'
 processed_table = process_training_file(training_file)
 matrix = None
 num_trees = 0
 if 'balance' in training_file:
-    num_trees = 30
+    num_trees = 31
 elif 'led' in training_file:
-    num_trees = 30
+    num_trees = 31
 elif 'nursery' in training_file:
-    num_trees = 30
+    num_trees = 31
 elif 'synthetic' in training_file:
-    num_trees = 10
+    num_trees = 7
 trees = []
 '''
 if 'balance' in training_file or 'synthetic' in training_file or 'led' in training_file or 'nursery' in training_file:
@@ -387,5 +387,5 @@ if 'balance' in training_file or 'synthetic' in training_file or 'led' in traini
         trees.append(tree)
     matrix = classify_test_file_binary(trees, test_file)
 end = timer()
-print('Runtime: ' + str(end-start))
+#print('Runtime: ' + str(end-start))
 print_output(matrix)

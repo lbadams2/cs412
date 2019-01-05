@@ -2,7 +2,13 @@
 #include <string>
 #include <vector>
 
-TreeNode::TreeNode() {};
+TreeNode::TreeNode() {
+    parent = NULL;
+};
+
+TreeNode::TreeNode(TreeNode *theParent) {
+    parent = theParent;
+};
 
 void TreeNode::appendChild(TreeNode *child) {
     child->setParent(this);

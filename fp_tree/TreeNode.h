@@ -9,6 +9,7 @@ class TreeNode {
 
     public:
         TreeNode();
+        TreeNode(TreeNode *parent);
         void appendChild(TreeNode *child);
         void setParent(TreeNode *parent);
         std::string getItemName();

@@ -10,6 +10,7 @@ using namespace std;
 vector<string> transactions;
 map<string, unsigned int> freqItems;
 unsigned int minSupport;
+vector<pair<string, unsigned int> > freqItemTuples;
 
 template <class K, class V>
 void printMap(map<K, V> map) {
@@ -50,11 +51,21 @@ void countWords() {
 }
 
 void createFP_Tree() {
+    vector<string> freqItemsSorted;
+    for(auto const& freqItem: freqItemTuples)
+        freqItemsSorted.push_back(freqItem.first);
+    TreeNode root = new TreeNode();
+    for(auto const& trans: transactions) {
 
+    }
 }
 
 int main(int argc, char** argv) {
     countWords();
     // sort freq items map
+    freqItemTuples.assign(freqItems.begin(), freqItems.end());
+    sort(begin(freqItemTuples), end(freqItemTuples), [](auto const &p1, auto const &p2) {
+        return p1.second > p2.second;
+    });
     createFP_Tree();
 }

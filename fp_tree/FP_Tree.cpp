@@ -50,13 +50,24 @@ void countWords() {
     printMap(itemsCount);
 }
 
+void insertTree(vector<string>::iterator &it, TreeNode &tree) {
+    string currentItem = *it;
+    vector<TreeNode *> children = tree.getChildren();
+    auto tempIt = find_if(children.begin(), children.end(), [&currentItem](const TreeNode& node) {return node.getItemName() == currentItem;});
+}
+
 void createFP_Tree() {
     vector<string> freqItemsSorted;
     for(auto const& freqItem: freqItemTuples)
         freqItemsSorted.push_back(freqItem.first);
     TreeNode root = new TreeNode();
     for(auto const& trans: transactions) {
-
+        vector<string> freqItemsInTrans;
+        for(auto const& freqItem: freqItemsSorted) 
+            if (trans.find(freqItem) != string::npos)
+                freqItemsInTrans.push_back(freqItem);
+        vector<string>::iterator it = freqItemsInTrans.begin();
+        insertTree(it, root);
     }
 }
 

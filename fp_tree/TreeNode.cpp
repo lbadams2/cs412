@@ -1,6 +1,4 @@
 #include "TreeNode.h"
-#include <string>
-#include <vector>
 
 TreeNode::TreeNode() {
     parent = NULL;
@@ -19,6 +17,10 @@ void TreeNode::setParent(TreeNode *theParent) {
     parent = theParent;
 }
 
+void TreeNode::setNodeLink(TreeNode *theLink) {
+    this->nodeLink = theLink;
+}
+
 int TreeNode::getCount() const{
     return this->count;
 }
@@ -27,10 +29,27 @@ void TreeNode::setCount(int theCount) {
     this->count = theCount;
 }
 
-std::vector<TreeNode *> TreeNode::getChildren() const {
+vector<TreeNode *> TreeNode::getChildren() const {
     return this->children;
 }
 
-std::string TreeNode::getItemName() const {
+string TreeNode::getItemName() const {
     return this->itemName;
+}
+
+void TreeNode::setItemName(string name) {
+    this->itemName = name;
+}
+
+void TreeNode::destroyRecursive(TreeNode *node) {
+    if(node) {
+        for(auto child: children) {
+            destroyRecursive(child);
+            delete node;
+        }
+    }
+}
+
+TreeNode::~TreeNode() {
+    destroyRecursive(this);
 }

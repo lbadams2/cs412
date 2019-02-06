@@ -5,6 +5,7 @@
 #include <map>
 #include <iostream>
 #include <algorithm>
+#include <regex>
 #include "TreeNode.h"
 using namespace std;
 
@@ -14,9 +15,14 @@ unsigned int minSupport;
 struct HeaderTableValue {
     int itemCount;
     TreeNode *nodeLink;
+    
+    HeaderTableValue(int itemCount, TreeNode *nodeLink) {
+        this->itemCount = itemCount;
+        this->nodeLink = nodeLink;
+    }
 };
 
-map<string, HeaderTableValue> headerTable;
+map<string, HeaderTableValue*> headerTable;
 
 template <class K, class V>
 void printMap(map<K, V> map) {
@@ -26,7 +32,7 @@ void printMap(map<K, V> map) {
 }
 
 const map<string, unsigned int>* getFreqItems() {
-    ifstream infile("input2.txt");
+    ifstream infile("/Users/liamadams/Documents/school/CS412/fp_tree/input2.txt");
     map<string, unsigned int> itemsCount;
     map<string, unsigned int> *freqItems = new map<string, unsigned int>();
     string line;
@@ -35,7 +41,7 @@ const map<string, unsigned int>* getFreqItems() {
         if(lineCount == 0) {
             minSupport = line[0] - '0';
             lineCount++;
-            continue;            
+            continue;
         }
         transactions.push_back(line);
         //vector<string> elems;
@@ -47,50 +53,61 @@ const map<string, unsigned int>* getFreqItems() {
                 itemsCount[item] = 1;
             else {
                 itemsCount[item]++;
-                if(itemsCount[item] >= minSupport) 
+                if(itemsCount[item] >= minSupport)
                     (*freqItems)[item] = itemsCount[item];
             }
             //*(bi++) = item;
-        }        
+        }
     }
     infile.close();
     printMap(itemsCount);
     return freqItems;
 }
 
-void updateHeaderTable(TreeNode *node) {
+void updateHeaderTable(TreeNode *node, bool newLink) {
     if(headerTable.count(node->getItemName()) == 0){
         // count should be 1
         int count = node->getCount();
-        HeaderTableValue val = {count, node};
+        HeaderTableValue *val = new HeaderTableValue(count, node);
         headerTable[node->getItemName()] = val;
     }
     else {
         auto headerVal = headerTable[node->getItemName()];
-        headerVal.itemCount = headerVal.itemCount++;
+        headerVal->itemCount = headerVal->itemCount + 1;
+        if(!newLink)
+            return;
+        TreeNode *tmpNode = headerVal->nodeLink;
+        TreeNode *prevNode = tmpNode;
+        while(tmpNode != NULL)
+            prevNode = tmpNode;
+            tmpNode = tmpNode->getNodeLink();
+        prevNode->setNodeLink(node);
     }
 }
 
 void insertTree(vector<string>::iterator &it, vector<string>::iterator end, TreeNode *tree) {
     string currentItem = *it;
     vector<TreeNode *> children = tree->getChildren();
-    // line below doesn't work
-    auto childIt = find_if(children.begin(), children.end(), [&currentItem](const TreeNode& node) {return node.getItemName() == currentItem;});
+    auto childIt = find_if(children.begin(), children.end(),
+                           [&currentItem](const TreeNode* node) {
+                               return node->getItemName() == currentItem;
+                           });
+    TreeNode *currentNode;
     if(childIt != children.end()) {
-        TreeNode *child = *childIt;
-        int childCount = child->getCount();
-        child->setCount(childCount++);
-        updateHeaderTable(child);
+        currentNode = *childIt;
+        int childCount = currentNode->getCount();
+        currentNode->setCount(++childCount);
+        updateHeaderTable(currentNode, false);
     }
     else {
-        TreeNode *newNode = new TreeNode();
-        newNode->setCount(1);
-        newNode->setItemName(currentItem);
-        tree->appendChild(newNode);
-        updateHeaderTable(newNode);
+        currentNode = new TreeNode();
+        currentNode->setCount(1);
+        currentNode->setItemName(currentItem);
+        tree->appendChild(currentNode);
+        updateHeaderTable(currentNode, true);
     }
     if(++it != end)
-        insertTree(it, end, tree);
+        insertTree(it, end, currentNode);
 }
 
 TreeNode* createFP_Tree(const vector<pair<string, unsigned int> >& freqItemTuples) {
@@ -98,11 +115,15 @@ TreeNode* createFP_Tree(const vector<pair<string, unsigned int> >& freqItemTuple
     for(auto const& freqItem: freqItemTuples)
         freqItemsSorted.push_back(freqItem.first);
     TreeNode *root = new TreeNode();
+    root->setCount(-1);
     for(auto const& trans: transactions) {
         vector<string> freqItemsInTrans;
-        for(auto const& freqItem: freqItemsSorted) 
-            if (trans.find(freqItem) != string::npos)
-                freqItemsInTrans.push_back(freqItem);
+        for(auto const& freqItem: freqItemsSorted) {
+            regex r("\\b" + freqItem + "\\b");
+            smatch m;
+            if (regex_search(trans, m, r))
+                freqItemsInTrans.push_back(m.str());
+        }
         vector<string>::iterator it = freqItemsInTrans.begin();
         insertTree(it, freqItemsInTrans.end(), root);
     }
